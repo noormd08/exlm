@@ -76,9 +76,10 @@ function hideSectionsBelowFilter(block, show) {
   if (parent) {
     const siblings = Array.from(parent.parentNode.children);
     const clickedIndex = siblings.indexOf(parent);
-    // eslint-disable-next-line no-plusplus
-    for (let i = clickedIndex + 1; i < siblings.length; i++) {
-      if (!siblings[i].classList.contains('browse-rail')) {
+    for (let i = clickedIndex + 1; i < siblings.length; i += 1) {
+      const attr = siblings[i].dataset.alwaysShow;
+      const alwaysShow = attr && attr.toLowerCase() === 'true';
+      if (!siblings[i].classList.contains('browse-rail') && !alwaysShow) {
         const classOp = show ? 'remove' : 'add';
         siblings[i].classList?.[classOp]('browse-hide-section');
       }
