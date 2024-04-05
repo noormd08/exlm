@@ -590,7 +590,7 @@
       {
         "component": "boolean",
         "valueType": "boolean",
-        "name": "cta2newWindow",
+        "name": "hide-section",
         "label": "Do NOT hide on browse filter results?",
         "description" : ""
       }
