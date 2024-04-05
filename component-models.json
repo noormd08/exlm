@@ -588,17 +588,12 @@
         ]
       },
       {
-        "id": "checkbox-group",
-        "fields": [
-          {
-            "component": "checkbox-group",
-            "label": "Section Visibility",
-            "name": "checkbox",
-            "valueType": "boolean",
-            "options": [
-              { "name": "Do NOT hide on browse filter results?", "value": "true" }
-            ]
-          }
+        "component": "checkbox-group",
+        "label": "Section Visibility",
+        "name": "checkbox",
+        "valueType": "boolean",
+        "options": [
+          { "name": "Do NOT hide on browse filter results?", "value": "true" }
         ]
       }
     ]
