@@ -588,12 +588,11 @@
         ]
       },
       {
-        "component": "checkbox-group",
+        "component": "boolean",
+        "valueType": "boolean",
+        "name": "cta2newWindow",
         "label": "Section Visibility",
-        "name": "checkbox",
-        "options": [
-          { "name": "Do NOT hide on browse filter results?", "value": "true" }
-        ]
+        "description" : "Do NOT hide on browse filter results?"
       }
     ]
   },
