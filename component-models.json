@@ -591,8 +591,8 @@
         "component": "boolean",
         "valueType": "boolean",
         "name": "cta2newWindow",
-        "label": "Section Visibility",
-        "description" : "Do NOT hide on browse filter results?"
+        "label": "Do NOT hide on browse filter results?",
+        "description" : ""
       }
     ]
   },
