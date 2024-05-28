@@ -10,7 +10,8 @@ import {
   fetchFragment,
 } from '../../scripts/scripts.js';
 import getProducts from '../../scripts/utils/product-utils.js';
-
+import initializeSignupFlow from '../../scripts/signup-flow/signup-flow.js';
+initializeSignupFlow();
 const languageModule = import('../../scripts/language.js');
 const { khorosProfileUrl } = getConfig();
 
