@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-cycle
 import { htmlToElement, fetchLanguagePlaceholders, getPathDetails } from '../scripts.js';
-import { loadBlocks, loadCSS, decorateIcons, decorateSections, decorateBlocks } from '../lib-franklin.js';
+import { loadCSS, loadBlocks, decorateSections, decorateBlocks, decorateIcons } from '../lib-franklin.js';
+
 loadCSS(`${window.hlx.codeBasePath}/scripts/signup-flow/signup-flow.css`);
 
 let placeholders = {};
@@ -211,7 +212,7 @@ const createSignupDialog = () => {
       }
     });
 
-    signupClose.forEach(button => {
+    signupClose.forEach((button) => {
       button.addEventListener('click', (e) => {
         e.preventDefault();
         signupDialog.close();
