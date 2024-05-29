@@ -166,6 +166,10 @@
     position: relative;
     z-index: 2;
 }
+.signup-dialog-container {
+        position: relative;
+        min-height: 100%;
+    }
 .signup-dialog-content {
     margin: 0 auto;
     max-width: 590px;
@@ -219,10 +223,6 @@
     }
     .signup-dialog-close-bar {
         width: 736px;
-    }
-    .signup-dialog-container {
-        position: relative;
-        min-height: 100%;
     }
     .signup-dialog-nav-bar {
         position: relative;
