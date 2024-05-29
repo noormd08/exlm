@@ -203,7 +203,10 @@
     }
     .signup-dialog-header {    
         padding: 20px;
-    }   
+    } 
+    .signup-dialog-header.sticky {
+        padding-top: 20px;
+    }  
     .signup-dialog-body {
         padding: 0 20px 20px;
     } 
@@ -230,9 +233,6 @@
     .signup-dialog-container {
         height: 100%;
         margin-top: 0;
-    }
-    .signup-dialog-header {
-        padding-top: 16px
     }
     .signup-dialog-nav-bar {
         position: relative;
@@ -279,10 +279,10 @@
     }    
     .step3-container .signup-dialog-bottom-decor {
         background: url('/images/mountain-background-decor.svg') no-repeat bottom;
-        bottom: -1px;
-        height: 420px;
+        bottom: 0;
+        height: 245px;
         left: 0;
-        position: absolute;
+        position: relative;
         width: 100%;
         z-index: 1;
     }	
