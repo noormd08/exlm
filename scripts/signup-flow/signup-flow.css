@@ -169,7 +169,7 @@
     color: var(--spectrum-gray-50);
 }
 .signup-dialog-body {
-    padding: 0 20px 16px; 
+    padding: 1px 20px 16px; 
     position: relative;
     z-index: 2;
 }
@@ -208,7 +208,7 @@
         padding-top: 20px;
     }  
     .signup-dialog-body {
-        padding: 0 20px 20px;
+        padding-bottom: 20px;
     } 
     .signup-dialog-title {
         margin-top: -3px;
