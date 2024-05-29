@@ -1,6 +1,6 @@
 .signup-dialog {
     background: var(--non-spectrum-bg);
-    border: 1px solid var(--non-spectrum-web-gray);
+    border: 0;
     border-radius: 16px;
     box-shadow: 0px 3px 24px rgba(0,0,0,0.16);
     height: auto;
@@ -201,7 +201,7 @@
         padding: 0 20px 20px;
     } 
     .signup-dialog-title {
-        margin-top: 0;
+        margin-top: -3px;
         max-width: 60%;
         order: 2;
         width: auto;
@@ -269,7 +269,7 @@
     }    
     .step3-container .signup-dialog-bottom-decor {
         background: url('/images/mountain-background-decor.svg') no-repeat bottom;
-        bottom: 0;
+        bottom: -1px;
         height: 420px;
         left: 0;
         position: absolute;
@@ -296,4 +296,11 @@
         top: 32px;
         width: auto;
     }
+}
+
+.show-button {
+    display: inline-block;
+}
+.hide-button {
+    display: none;
 }
