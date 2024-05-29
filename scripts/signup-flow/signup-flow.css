@@ -58,8 +58,8 @@
 }
 .signup-dialog-container {
     position: relative;
-    height: calc(100% - 16px);
-    margin-top: 16px;
+    height: calc(100% - 20px);
+    margin-top: 20px;
     overflow-x: hidden;
     overflow-y: auto;
 }
@@ -231,7 +231,7 @@
         margin-top: 0;
     }
     .signup-dialog-header {
-        padding-top: 16px
+        padding-top: 20px
     }
     .signup-dialog-nav-bar {
         position: relative;
