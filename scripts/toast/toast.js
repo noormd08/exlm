@@ -18,7 +18,12 @@ export const tooltipTemplate = (sel, label = '', tiptext) => {
 
 export const sendNotice = (noticelabel) => {
   const sendNoticeContent = noticeTemplate(noticelabel);
-  document.body.prepend(sendNoticeContent);
+  const dialog = document.querySelector('dialog');
+  if(dialog) {
+    dialog.prepend(sendNoticeContent);
+  } else {
+    document.body.prepend(sendNoticeContent);
+  } 
   const isExlNotice = document.querySelector('.exl-toast');
   if (isExlNotice) {
     document.querySelector('.exl-toast .icon-close').addEventListener('click', () => {
