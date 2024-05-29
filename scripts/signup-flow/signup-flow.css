@@ -5,7 +5,7 @@
     box-shadow: 0px 3px 24px rgba(0,0,0,0.16);
     height: auto;
     left: 0;
-    margin: 72px 16px 16px;    
+    margin: 72px 16px 16px;
     overflow: hidden;
     padding: 0;
     position: fixed;
@@ -58,14 +58,14 @@
 }
 .signup-dialog-container {
     position: relative;
-    min-height: 100%;
-    height: calc(100% - 30px);
+    height: calc(100% - 16px);
+    margin-top: 16px;
     overflow-x: hidden;
     overflow-y: auto;
 }
 .signup-dialog-header {
     background: var(--non-spectrum-bg);
-    padding: 16px 20px 20px;
+    padding: 0 20px 20px;
     position: relative;
     text-align: center; 
     z-index: 3;
@@ -227,8 +227,11 @@
         width: 736px;
     }
     .signup-dialog-container {
-        position: relative;
-        min-height: 100%;
+        height: 100%;
+        margin-top: 0;
+    }
+    .signup-dialog-header {
+        padding-top: 16px
     }
     .signup-dialog-nav-bar {
         position: relative;
