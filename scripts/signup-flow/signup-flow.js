@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-cycle
-import { decorateMain, htmlToElement, fetchLanguagePlaceholders, getPathDetails } from '../scripts.js';
-import { loadBlocks, loadCSS, decorateIcons } from '../lib-franklin.js';
+import { htmlToElement, fetchLanguagePlaceholders, getPathDetails } from '../scripts.js';
+import { loadBlocks, loadCSS, decorateIcons, decorateSections, decorateBlocks } from '../lib-franklin.js';
+loadCSS(`${window.hlx.codeBasePath}/scripts/signup-flow/signup-flow.css`);
 
 let placeholders = {};
 try {
@@ -45,7 +46,7 @@ const createSignupDialog = () => {
   const signupDialog = htmlToElement(`
         <dialog class="signup-dialog">
             <div class="signup-dialog-close-bar">
-                <a href="#" class="signup-dialog-close-btn">
+                <a href="#" class="signup-dialog-close-btn close-btn">
                     <span class="close-text">${placeholders?.closeBtnLabel}</span>
                     <div class="close-icon-holder">
                         <span class="icon icon-close"></span>
@@ -95,7 +96,8 @@ const createSignupDialog = () => {
         signupContent.setAttribute('data-current-page-index', index);
         signupContainer.className = `signup-dialog-container ${pages[index].name}-container`;
         signupContent.innerHTML = pageContent;
-        decorateMain(signupContent);
+        decorateSections(signupContent);
+        decorateBlocks(signupContent);
         await loadBlocks(signupContent);
         await decorateIcons(signupDialog);
         return true;
@@ -124,7 +126,7 @@ const createSignupDialog = () => {
     prevBtn.classList.toggle('visibility-hidden', pageIndex === 0);
     nextBtn.classList.toggle('content-hidden', pageIndex > 1);
     finishBtn.classList.toggle('content-hidden', pageIndex !== 2);
-    closeBtn.classList.toggle('content-hidden', pageIndex < 3);
+    closeBtn.classList.toggle('content-hidden', pageIndex < pages.length - 1);
 
     // Generate step flow content based on the current step index
     let flow = '';
@@ -200,8 +202,7 @@ const createSignupDialog = () => {
    * Sets up event handlers for closing the dialog.
    */
   const setupCloseEvents = () => {
-    const signupClose = signupDialog.querySelector('.signup-dialog-close-btn');
-    const closeBtn = signupDialog.querySelector('.signup-dialog-nav-bar .close-btn');
+    const signupClose = signupDialog.querySelectorAll('.close-btn');
 
     signupDialog.addEventListener('click', (event) => {
       if (event.target === signupDialog) {
@@ -210,16 +211,12 @@ const createSignupDialog = () => {
       }
     });
 
-    signupClose.addEventListener('click', (e) => {
-      e.preventDefault();
-      signupDialog.close();
-      document.body.classList.remove('overflow-hidden');
-    });
-
-    closeBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      signupDialog.close();
-      document.body.classList.remove('overflow-hidden');
+    signupClose.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        signupDialog.close();
+        document.body.classList.remove('overflow-hidden');
+      });
     });
   };
 
@@ -253,6 +250,5 @@ const createSignupDialog = () => {
  * Loads the necessary CSS and creates the signup dialog.
  */
 export default function initializeSignupFlow() {
-  loadCSS(`${window.hlx.codeBasePath}/scripts/signup-flow/signup-flow.css`);
   createSignupDialog();
 }
