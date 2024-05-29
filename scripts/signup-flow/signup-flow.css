@@ -6,8 +6,7 @@
     height: auto;
     left: 0;
     margin: 72px 16px 16px;    
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     padding: 0;
     position: fixed;
     top: 0;
@@ -56,6 +55,13 @@
 }
 .signup-dialog-close-btn .icon-close .a {
     fill: var(--spectrum-gray-50);
+}
+.signup-dialog-container {
+    position: relative;
+    min-height: 100%;
+    height: calc(100% - 30px);
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 .signup-dialog-header {
     background: var(--non-spectrum-bg);
@@ -166,10 +172,6 @@
     position: relative;
     z-index: 2;
 }
-.signup-dialog-container {
-        position: relative;
-        min-height: 100%;
-    }
 .signup-dialog-content {
     margin: 0 auto;
     max-width: 590px;
@@ -223,6 +225,10 @@
     }
     .signup-dialog-close-bar {
         width: 736px;
+    }
+    .signup-dialog-container {
+        position: relative;
+        min-height: 100%;
     }
     .signup-dialog-nav-bar {
         position: relative;
@@ -296,11 +302,4 @@
         top: 32px;
         width: auto;
     }
-}
-
-.show-button {
-    display: inline-block;
-}
-.hide-button {
-    display: none;
 }
