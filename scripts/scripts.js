@@ -236,7 +236,12 @@ function addArticleLandingRail(main) {
  * Check if current page is a Profile page.
  * theme = profile is set in bulk metadata for /en/profile** paths.
  */
-export async function isProfilePage() {
+export function isProfilePage() {
+  const theme = getMetadata('theme');
+  return theme.toLowerCase().startsWith('profile');
+}
+
+async function authenticateUser() {
   try {
     await loadIms(); // eslint-disable-line no-use-before-define
     if (!window?.adobeIMS?.isUserSignedIn()) {
@@ -245,8 +250,6 @@ export async function isProfilePage() {
   } catch (e) {
     window?.adobeIMS?.signIn();
   }
-  const theme = getMetadata('theme');
-  return theme.toLowerCase().startsWith('profile');
 }
 
 /**
@@ -289,6 +292,7 @@ function buildAutoBlocks(main) {
       addArticleLandingRail(main);
     }
     if (isProfilePage()) {
+      authenticateUser();
       addProfileRail(main);
       addProfileTab(main);
     }
