@@ -244,7 +244,9 @@ export function isProfilePage() {
 async function authenticateUser() {
   try {
     await loadIms(); // eslint-disable-line no-use-before-define
-    if (!window?.adobeIMS?.isUserSignedIn()) {
+    if (window?.adobeIMS?.isSignedInUser() || false) {
+      console.log('User is signed in')
+    } else {
       window?.adobeIMS?.signIn();
     }
   } catch (e) {
