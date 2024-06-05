@@ -236,7 +236,15 @@ function addArticleLandingRail(main) {
  * Check if current page is a Profile page.
  * theme = profile is set in bulk metadata for /en/profile** paths.
  */
-export function isProfilePage() {
+export async function isProfilePage() {
+  try {
+    await loadIms(); // eslint-disable-line no-use-before-define
+    if (!window?.adobeIMS?.isUserSignedIn()) {
+      window?.adobeIMS?.signIn();
+    }
+  } catch (e) {
+    window?.adobeIMS?.signIn();
+  }
   const theme = getMetadata('theme');
   return theme.toLowerCase().startsWith('profile');
 }
