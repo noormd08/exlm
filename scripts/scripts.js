@@ -241,19 +241,6 @@ export function isProfilePage() {
   return theme.toLowerCase().startsWith('profile');
 }
 
-async function authenticateUser() {
-  try {
-    await loadIms(); // eslint-disable-line no-use-before-define
-    if (window?.adobeIMS?.isSignedInUser() || false) {
-      console.log('User is signed in')
-    } else {
-      window?.adobeIMS?.signIn();
-    }
-  } catch (e) {
-    window?.adobeIMS?.signIn();
-  }
-}
-
 /**
  * Add a left rail to the profile page.
  * @param {HTMLElement} main
@@ -294,7 +281,6 @@ function buildAutoBlocks(main) {
       addArticleLandingRail(main);
     }
     if (isProfilePage()) {
-      authenticateUser();
       addProfileRail(main);
       addProfileTab(main);
     }
