@@ -26,7 +26,7 @@ function decorateInterests(block){
     const columnsContainer = document.createElement('ul');
     block.appendChild(columnsContainer);
     columnsContainer.classList.add('interests-container');
-    console.log(profileData)
+    const userInterests = profileData.interests;
     interests.data.forEach(interest => {
         const column = document.createElement('li');
         column.innerHTML = `<li class='row'><label class="checkbox">
@@ -48,6 +48,10 @@ function decorateInterests(block){
         } else {
             columnsContainer.appendChild(column);
             column.classList.add('interest');
+        }
+        
+        if (userInterests.includes(interest.Name)) {
+            column.querySelector('input').checked = true;
         }
     });
 
