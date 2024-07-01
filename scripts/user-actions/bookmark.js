@@ -9,7 +9,7 @@ export async function bookmarkHandler(config) {
 }
 
 export async function decorateBookmark(bookmarkButton) {
-    const isSignedIn = true; // await isSignedInUser();
+    const isSignedIn = await isSignedInUser();
 
     if (isSignedIn) {
         bookmarkButton.dataset.signedIn = true;
