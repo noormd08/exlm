@@ -1,0 +1,112 @@
+.user-actions {
+    display: flex;
+    align-items: baseline;
+}
+
+.user-actions button {
+    position: relative;
+    padding: 0;
+    cursor: pointer;
+    box-sizing: content-box;
+    line-height: 1.75em;
+    font-weight: inherit;
+    background: none;
+    border: none;
+    margin: 0;
+    border-radius: 0;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    overflow: visible;
+}
+
+button:disabled, button:disabled:hover {
+    background: none;
+}
+
+.user-actions button .icon {
+    height: 20px;
+    width: 20px;
+}
+
+.user-actions .action-tooltip {
+    display: none;
+    background-color: var(--spectrum-gray-600);
+    border-radius: 4px;
+    bottom: 120%;
+    color: var(--spectrum-gray-50);
+    font-size: 12px;
+    font-weight: var(--font-weight-400);
+    left: 50%;
+    padding: 2px 8px 4px;
+    position: absolute;
+    text-align: center;
+    text-wrap: nowrap;
+    transform: translateX(-50%);
+    white-space: pre;
+    z-index: 1;
+    transition: all 130ms ease-in-out;
+}
+
+.user-actions .action-tooltip::after {
+    border-width: 4px;
+    border-style: solid;
+    border-color: var(--spectrum-gray-600) transparent transparent transparent;
+    content: "";
+    left: 50%;
+    margin-left: -4px;
+    position: absolute;
+    top: 100%;
+}
+
+.user-actions .copy-link:hover .action-tooltip {
+    display: block;
+}
+
+.user-actions .bookmark .icon-bookmark-active {
+    display: none;
+}
+
+.user-actions .bookmark[data-bookmarked="true"] .icon-bookmark {
+    display: none;
+}
+
+.user-actions .bookmark[data-bookmarked="true"] .icon-bookmark-active {
+    display: block;
+}
+
+.user-actions .bookmark:hover .signedin-tooltip {
+    display: block;
+}
+
+.user-actions .bookmark[data-bookmarked="false"]:hover .bookmark-tooltip {
+    display: block;
+}
+
+.user-actions .bookmark[data-bookmarked="true"]:hover .remove-bookmark-tooltip {
+    display: block;
+}
+
+/* .user-actions .bookmark[data-signed-in="false"] .icon-bookmark-active {
+    display: none;
+}
+
+.user-actions .bookmark[data-signed-in="true"][data-bookmarked="false"] .icon-bookmark {
+    display: block;
+}
+
+.user-actions .bookmark[data-signed-in="true"][data-bookmarked="true"] .icon-bookmark-active {
+    display: block;
+}
+
+.user-actions .bookmark[data-signed-in="false"]:hover .signedin-tooltip {
+    display: inline-block;
+}
+
+.user-actions .bookmark[data-signed-in="true"][data-bookmarked="false"]:hover .bookmark-tooltip {
+    display: inline-block;
+}
+
+.user-actions .bookmark[data-signed-in="true"][data-bookmarked="true"]:hover .remove-bookmark-tooltip {
+    display: inline-block;
+} */

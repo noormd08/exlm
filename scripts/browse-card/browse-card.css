@@ -260,13 +260,13 @@
   width: 22px;
   fill: var(--non-spectrum-navy-blue);
 }
-.browse-card .browse-card-footer .icon {
+/* .browse-card .browse-card-footer .icon {
   color: var( --non-spectrum-dim-gray);
   fill: var( --non-spectrum-dim-gray);
   margin-right: 2px;
   height: 24px;
   width: 24px;
-}
+} */
 .browse-card .browse-card-meta-anchor {
   margin: 0;
   display: flex;
