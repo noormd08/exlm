@@ -31,14 +31,6 @@ export async function decorateBookmark(bookmarkButton, id) {
         bookmarkButton.appendChild(removeBookmarkTooltip);
 
         bookmarkButton.dataset.bookmarked = isBookmarked(id);
-
-        const bookmarkId = '';
-        const profileData = await defaultProfileClient.getMergedProfile();
-        const { bookmarks = [] } = profileData;
-        const targetBookmarkItem = bookmarks.find((bookmarkIdInfo) => `${bookmarkIdInfo}`.includes(bookmarkId));
-        if (targetBookmarkItem) {
-            bookmarkButton.dataset.bookmarked = true;
-        }
     }
     else {
         const signInToBookmarkTooltip = createPlaceholderSpan('Sign-in to bookmark', 'Sign-in to bookmark', (span) => {
