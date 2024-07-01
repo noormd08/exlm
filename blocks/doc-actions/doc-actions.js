@@ -1,4 +1,4 @@
-import { loadCSS, loadBlocks, decorateIcons } from '../../scripts/lib-franklin.js';
+import { loadBlocks, decorateIcons } from '../../scripts/lib-franklin.js';
 import {
   createTag,
   isDocPage,
@@ -7,13 +7,11 @@ import {
   fetchLanguagePlaceholders,
   getConfig,
 } from '../../scripts/scripts.js';
-import loadJWT from '../../scripts/auth/jwt.js';
-// import { adobeIMS, profile } from '../../scripts/data-service/profile-service.js';
 import { tooltipTemplate } from '../../scripts/toast/toast.js';
 import renderBookmark from '../../scripts/bookmark/bookmark.js';
 import attachCopyLink from '../../scripts/copy-link/copy-link.js';
 import { assetInteractionModel } from '../../scripts/analytics/lib-analytics.js';
-import { isSignedInUser, profile } from '../../scripts/data-service/profile-service.js';
+import { defaultProfileClient, isSignedInUser } from '../../scripts/auth/profile.js';
 
 const { automaticTranslationLink } = getConfig();
 
@@ -61,19 +59,16 @@ export async function decorateBookmark(block, placeholders) {
     const bookmarkAuthedToolTipIconD = bookmarkAuthedDesktop.querySelector('.bookmark-icon');
     const bookmarkAuthedToolTipLabelM = bookmarkAuthedMobile.querySelector('.exl-tooltip-label');
     const bookmarkAuthedToolTipIconM = bookmarkAuthedMobile.querySelector('.bookmark-icon');
-    loadJWT().then(async () => {
-      profile().then(async (data) => {
-        if (data.bookmarks.includes(bookmarkId)) {
-          bookmarkAuthedToolTipIconD.classList.add('authed');
-          bookmarkAuthedToolTipLabelD.innerHTML = `${placeholders.bookmarkAuthLabelRemove}`;
-          bookmarkAuthedToolTipIconM.classList.add('authed');
-          bookmarkAuthedToolTipLabelM.innerHTML = `${placeholders.bookmarkAuthLabelRemove}`;
-        }
-      });
-
-      renderBookmark(bookmarkAuthedToolTipLabelD, bookmarkAuthedToolTipIconD, bookmarkId);
-      renderBookmark(bookmarkAuthedToolTipLabelM, bookmarkAuthedToolTipIconM, bookmarkId);
+    defaultProfileClient.getMergedProfile().then(async (data) => {
+      if (data?.bookmarks?.find((bookmark) => bookmark.includes(bookmarkId))) {
+        bookmarkAuthedToolTipIconD.classList.add('authed');
+        bookmarkAuthedToolTipLabelD.innerHTML = `${placeholders.bookmarkAuthLabelRemove}`;
+        bookmarkAuthedToolTipIconM.classList.add('authed');
+        bookmarkAuthedToolTipLabelM.innerHTML = `${placeholders.bookmarkAuthLabelRemove}`;
+      }
     });
+    renderBookmark(bookmarkAuthedToolTipLabelD, bookmarkAuthedToolTipIconD, bookmarkId);
+    renderBookmark(bookmarkAuthedToolTipLabelM, bookmarkAuthedToolTipIconM, bookmarkId);
   } else {
     block.appendChild(unAuthBookmark);
     if (docActionsMobileContainer && !docActionsMobileBookmark) {
@@ -179,18 +174,22 @@ async function decorateLanguageToggle(block, placeholders) {
     const docContainer = document.querySelector('main > div:first-child');
 
     [...desktopAndMobileLangToggles].forEach((langToggle) => {
-      langToggle.addEventListener('change', async (e) => {
-        const { checked } = e.target;
-        await toggleContent(checked, docContainer);
-      });
+      if (!langToggle.parentElement.classList.contains('listener')) {
+        langToggle.addEventListener('change', async (e) => {
+          const { checked } = e.target;
+          await toggleContent(checked, docContainer);
+          assetInteractionModel(null, `automatic translation ${e.target.checked ? 'off' : 'on'}`);
+        });
+        langToggle.parentElement.classList.add('listener');
+      }
     });
 
     const desktopAndMobileRadioFeedback = document.querySelectorAll(
       '.doc-mt-toggle .doc-mt-feedback input[type="radio"]',
     );
     [...desktopAndMobileRadioFeedback].forEach((radio) => {
-      radio.addEventListener('click', async () => {
-        assetInteractionModel(null, 'Radio Select');
+      radio.addEventListener('click', async (e) => {
+        assetInteractionModel(null, `helpful-translation - ${e.target.value}`);
       });
     });
   }
@@ -203,7 +202,6 @@ async function decorateBookmarkAndCopy(block, placeholders) {
 
 export default async function decorate(block) {
   if (isDocPage) {
-    loadCSS(`${window.hlx.codeBasePath}/scripts/toast/toast.css`);
     fetchLanguagePlaceholders().then((placeholders) => {
       decorateBookmarkMobileBlock(block, placeholders);
       decorateLanguageToggle(block, placeholders);

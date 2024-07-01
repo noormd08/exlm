@@ -1,5 +1,7 @@
-import { fetchLanguagePlaceholders } from '../../scripts/scripts.js';
+import { fetchLanguagePlaceholders, getConfig } from '../../scripts/scripts.js';
 import { COMMUNITY_SEARCH_FACET } from '../../scripts/browse-card/browse-cards-constants.js';
+
+const { isProd } = getConfig();
 
 const SUB_FACET_MAP = {
   Community: COMMUNITY_SEARCH_FACET,
@@ -67,6 +69,13 @@ const contentType = [
     description: 'Credentials that recognize an individual’s skill and competency in an Adobe solution.',
   },
   {
+    id: 'Article',
+    value: 'Article',
+    title: 'Actionable Insights',
+    description: 'Real-world customer perspectives and use-cases of Experience Cloud products.',
+    disabled: isProd,
+  },
+  {
     id: 'Community',
     value: 'Community',
     title: 'Community',
@@ -104,13 +113,17 @@ const contentType = [
     description:
       'Brief instructional material with step-by-step instructions to learn a specific skill or accomplish a specific task.',
   },
-].map((role) => ({
-  ...role,
-  ...(placeholders[`filterContentType${role.id}Title`] && { title: placeholders[`filterContentType${role.id}Title`] }),
-  ...(placeholders[`filterContentType${role.id}Description`] && {
-    description: placeholders[`filterContentType${role.id}Description`],
-  }),
-}));
+]
+  .filter((type) => !type.disabled)
+  .map((role) => ({
+    ...role,
+    ...(placeholders[`filterContentType${role.id}Title`] && {
+      title: placeholders[`filterContentType${role.id}Title`],
+    }),
+    ...(placeholders[`filterContentType${role.id}Description`] && {
+      description: placeholders[`filterContentType${role.id}Description`],
+    }),
+  }));
 
 /**
  * Array containing expLevel (Experience Level) with associated metadata.
@@ -145,6 +158,29 @@ const expLevel = [
   }),
 }));
 
+const authorTypes = [
+  {
+    id: 'internal',
+    value: 'Adobe',
+    title: 'Adobe',
+    description: 'Content created by Adobe employees',
+  },
+  {
+    id: 'external',
+    value: 'External',
+    title: 'External',
+    description: 'Content created by expert Experience Cloud customers',
+  },
+].map((authorType) => ({
+  ...authorType,
+  ...(placeholders[`filterAuthorType${authorType.id}Title`] && {
+    title: placeholders[`filterAuthorType${authorType.id}Title`],
+  }),
+  ...(placeholders[`filterAuthorType${authorType.id}Description`] && {
+    description: placeholders[`filterAuthorType${authorType.id}Description`],
+  }),
+}));
+
 export const roleOptions = {
   id: 'el_role',
   name: placeholders.filterRoleLabel || 'Role',
@@ -163,6 +199,20 @@ export const expTypeOptions = {
   id: 'el_level',
   name: placeholders.filterExperienceLevelLabel || 'Experience Level',
   items: expLevel,
+  selected: 0,
+};
+
+export const productTypeOptions = {
+  id: 'el_product',
+  name: placeholders.filterProductLabel || 'Product',
+  items: expLevel,
+  selected: 0,
+};
+
+export const authorOptions = {
+  id: 'author_type',
+  name: placeholders.filterAuthorLabel || 'Author Type',
+  items: authorTypes,
   selected: 0,
 };
 
@@ -321,3 +371,35 @@ export const handleCoverSearchSubmit = (targetSearchText) => {
     window.location.hash = `#q=${targetSearchText || ''}&${window.location.hash.slice(1)}`;
   }
 };
+
+/**
+ * Gets articleIndex object.
+ * @param {string} [prefix] Location of articleIndex
+ * @returns {object} Window ArticleIndex object
+ */
+export async function fetchArticleIndex(prefix = 'en') {
+  window.articleIndex = window.articleIndex || {};
+  const loaded = window.articleIndex[`${prefix}-loaded`];
+  if (!loaded) {
+    window.articleIndex[`${prefix}-loaded`] = new Promise((resolve, reject) => {
+      const url = `/${prefix}/article-index.json`;
+      fetch(url)
+        .then((resp) => {
+          if (resp.ok) {
+            return resp.json();
+          }
+          throw new Error(`${resp.status}: ${resp.statusText}`);
+        })
+        .then((json) => {
+          window.articleIndex[prefix] = json.data;
+          resolve(json.data);
+        })
+        .catch((error) => {
+          window.articleIndex[prefix] = [];
+          reject(error);
+        });
+    });
+  }
+  await window.articleIndex[`${prefix}-loaded`];
+  return window.articleIndex[prefix];
+}

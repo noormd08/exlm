@@ -1,9 +1,8 @@
 import csrf from '../../auth/csrf.js';
-import fetchData from '../../request.js';
 import { COVEO_TOKEN } from '../../session-keys.js';
 import loadJWT from '../../auth/jwt.js';
-import { isSignedInUser } from '../profile-service.js';
 import { getConfig } from '../../scripts.js';
+import { isSignedInUser } from '../../auth/profile.js';
 
 const { coveoTokenUrl } = getConfig();
 
@@ -15,7 +14,7 @@ async function retrieveCoveoToken(email = '', token = '') {
   let status = 0;
 
   try {
-    const response = await fetchData(coveoTokenUrl, {
+    const response = await fetch(coveoTokenUrl, {
       credentials: 'include',
       method: 'POST',
       headers: {
@@ -122,6 +121,13 @@ export default async function loadCoveoToken() {
     coveoResponseToken ||
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve) => {
+      // this is temporary code, will be reverted.
+      // Token allows acces to staging search functionality, but not analytics
+      const { isProd, coveoToken } = getConfig();
+      if (!isProd) {
+        resolve(coveoToken);
+        return;
+      }
       const signedIn = await isSignedInUser();
       if (signedIn) {
         loadJWT().then(async () => {

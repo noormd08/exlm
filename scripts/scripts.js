@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-bitwise */
 import {
   sampleRUM,
@@ -18,12 +19,45 @@ import {
   fetchPlaceholders,
   readBlockConfig,
   createOptimizedPicture,
+  toClassName,
 } from './lib-franklin.js';
-// eslint-disable-next-line import/no-cycle
 
-const LCP_BLOCKS = ['marquee']; // add your LCP blocks to the list
-
+const LCP_BLOCKS = ['marquee', 'article-marquee']; // add your LCP blocks to the list
 export const timers = new Map();
+
+/**
+ * Moves all the attributes from a given elmenet to another given element.
+ * @param {Element} from the element to copy attributes from
+ * @param {Element} to the element to copy attributes to
+ */
+export function moveAttributes(from, to, attributes) {
+  if (!attributes) {
+    // eslint-disable-next-line no-param-reassign
+    attributes = [...from.attributes].map(({ nodeName }) => nodeName);
+  }
+  attributes.forEach((attr) => {
+    const value = from.getAttribute(attr);
+    if (value) {
+      to.setAttribute(attr, value);
+      from.removeAttribute(attr);
+    }
+  });
+}
+
+/**
+ * Move instrumentation attributes from a given element to another given element.
+ * @param {Element} from the element to copy attributes from
+ * @param {Element} to the element to copy attributes to
+ */
+export function moveInstrumentation(from, to) {
+  moveAttributes(
+    from,
+    to,
+    [...from.attributes]
+      .map(({ nodeName }) => nodeName)
+      .filter((attr) => attr.startsWith('data-aue-') || attr.startsWith('data-richtext-')),
+  );
+}
 
 // eslint-disable-next-line
 export function debounce(id = '', fn = () => void 0, ms = 250) {
@@ -52,18 +86,6 @@ async function loadFonts() {
   } catch (e) {
     // do nothing
   }
-}
-
-/**
- * one trust configuration setup
- */
-function oneTrust() {
-  window.fedsConfig = window.fedsConfig || {};
-  window.fedsConfig.privacy = window.fedsConfig.privacy || {};
-  window.fedsConfig.privacy.otDomainId = `7a5eb705-95ed-4cc4-a11d-0cc5760e93db${
-    window.location.host.split('.').length === 3 ? '' : '-test'
-  }`;
-  window.fedsConfig.privacy.footerLinkSelector = '.footer [href="#onetrust"]';
 }
 
 /**
@@ -191,16 +213,196 @@ function addBrowseBreadCrumb(main) {
 }
 
 /**
+ * Extract author information from the author page.
+ * @param {HTMLElement} block
+ */
+export function extractAuthorInfo(block) {
+  const authorInfo = [...block.children].map((row) => row.firstElementChild);
+  return {
+    authorImage: authorInfo[0]?.querySelector('img')?.getAttribute('src'),
+    authorName: authorInfo[1]?.textContent.trim(),
+    authorTitle: authorInfo[2]?.textContent.trim(),
+    authorCompany: authorInfo[3]?.textContent.trim(),
+    authorDescription: authorInfo[4],
+    authorSocialLinkText: authorInfo[5]?.textContent.trim(),
+    authorSocialLinkURL: authorInfo[6]?.textContent.trim(),
+  };
+}
+
+/**
+ * Fetch the author information from the author page.
+ * @param {HTMLAnchorElement} anchor || {string} link
+ */
+export async function fetchAuthorBio(anchor) {
+  const link = anchor.href ? anchor.href : anchor;
+  return fetch(link)
+    .then((response) => response.text())
+    .then((html) => {
+      const parser = new DOMParser();
+      const htmlDoc = parser.parseFromString(html, 'text/html');
+      const authorInfo = extractAuthorInfo(htmlDoc.querySelector('.author-bio'));
+      return authorInfo;
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
+export function isArticleLandingPage() {
+  const theme = getMetadata('theme');
+  return theme.split(',').find((t) => t.toLowerCase().startsWith('article-'));
+}
+
+function addArticleLandingRail(main) {
+  // if there is already editable browse rail stored
+  const articleRailSectionFound = [...main.querySelectorAll('.section-metadata')].find((sMeta) =>
+    readBlockConfig(sMeta)?.style.split(',').includes('article-rail-section'),
+  );
+  if (articleRailSectionFound) return;
+
+  // default: create a dynamic uneditable article rail
+  const leftRailSection = document.createElement('div');
+  leftRailSection.classList.add('articles-rail-section', isArticleLandingPage());
+  leftRailSection.append(buildBlock('articles-rail', []));
+  main.append(leftRailSection);
+}
+
+/**
+ * Check if current page is a Profile page.
+ * theme = profile is set in bulk metadata for /en/profile** paths.
+ */
+export function isProfilePage() {
+  const theme = getMetadata('theme');
+  return theme.toLowerCase().startsWith('profile');
+}
+
+/**
+ * Check if current page is a Signup flow modal page.
+ * theme = signup is set in bulk metadata for /en/profile/signup-flow-modal** paths.
+ */
+export function isSignUpPage() {
+  const theme = getMetadata('theme');
+  return theme.toLowerCase().startsWith('signup');
+}
+
+/**
+ * Add a left rail to the profile page.
+ * @param {HTMLElement} main
+ *
+ */
+function addProfileRail(main) {
+  const profileRailSection = document.createElement('div');
+  profileRailSection.classList.add('profile-rail-section');
+  profileRailSection.append(buildBlock('profile-rail', []));
+  main.prepend(profileRailSection);
+}
+
+/**
+ * Add a nav tab to the profile page.
+ * @param {HTMLElement} main
+ *
+ */
+function addProfileTab(main) {
+  const profileTabSection = document.createElement('div');
+  profileTabSection.classList.add('profile-tab-section');
+  profileTabSection.append(buildBlock('profile-tab', []));
+  main.prepend(profileTabSection);
+}
+
+/**
+ * Add a mini TOC to the article page.
+ * @param {HTMLElement} main
+ */
+function addMiniToc(main) {
+  if (
+    document.querySelectorAll('.mini-toc').forEach((toc) => {
+      toc.remove();
+    })
+  );
+  const tocSection = document.createElement('div');
+  tocSection.classList.add('mini-toc-section');
+  tocSection.append(buildBlock('mini-toc', []));
+  const contentContainer = document.createElement('div');
+  contentContainer.classList.add('content-container');
+  if (document.querySelector('.article-marquee')) {
+    const articleMarquee = document.querySelector('.article-marquee');
+    articleMarquee.parentNode.insertAdjacentElement('afterend', tocSection);
+  } else {
+    main.prepend(tocSection);
+  }
+}
+
+/**
+ * Tabbed layout for Tab section
+ * @param {HTMLElement} main
+ */
+async function buildTabSection(main) {
+  let tabIndex = 0;
+  let tabContainer;
+  let tabFound = false;
+  const sections = main.querySelectorAll('main > div');
+  sections.forEach((section, i) => {
+    const sectionMeta = section.querySelector('.section-metadata > div > div:nth-child(2)');
+    if (sectionMeta?.textContent.includes('tab-section')) {
+      if (!tabFound) {
+        tabIndex += 1;
+        tabFound = true;
+        const tabs = buildBlock('tabs', []);
+        tabs.dataset.tabIndex = tabIndex;
+        tabContainer = document.createElement('div');
+        tabContainer.classList.add('section');
+        tabContainer.classList.add('article-content-section');
+        tabContainer.append(tabs);
+        main.insertBefore(tabContainer, section);
+      }
+      if (
+        tabFound &&
+        !sections[i + 1]
+          ?.querySelector('.section-metadata > div > div:nth-child(2)')
+          ?.textContent.includes('tab-section')
+      ) {
+        tabFound = false;
+      }
+      section.classList.add(`tab-index-${tabIndex}`);
+    }
+  });
+  main.querySelectorAll('.delete-this-section').forEach((section) => {
+    section.remove();
+  });
+}
+
+/**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
 function buildAutoBlocks(main) {
   try {
     buildSyntheticBlocks(main);
+    if (
+      !isProfilePage() &&
+      // eslint-disable-next-line no-use-before-define
+      !isDocPage() &&
+      // eslint-disable-next-line no-use-before-define
+      !isDocArticlePage() &&
+      !isSignUpPage()
+    ) {
+      buildTabSection(main);
+    }
     // if we are on a product browse page
     if (isBrowsePage()) {
       addBrowseBreadCrumb(main);
       addBrowseRail(main);
+    }
+    if (isArticleLandingPage()) {
+      addArticleLandingRail(main);
+    }
+    // eslint-disable-next-line no-use-before-define
+    if (isArticlePage()) {
+      addMiniToc(main);
+    }
+    if (isProfilePage()) {
+      addProfileTab(main);
+      addProfileRail(main);
     }
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -257,9 +459,6 @@ export function decorateExternalLinks(main) {
       if (a.hostname !== window.location.hostname) {
         a.setAttribute('target', '_blank');
       }
-      if (!href.startsWith('/') && !href.startsWith('http')) {
-        a.href = `//${href}`;
-      }
     }
   });
 }
@@ -291,6 +490,14 @@ export const decorateLinks = (block) => {
   });
 };
 
+export function isPageOfType(type) {
+  const theme = getMetadata('theme');
+  return theme
+    .split(',')
+    .map((t) => t.toLowerCase().trim())
+    .includes(type);
+}
+
 /**
  * Check if current page is a MD Docs Page.
  * theme = docs is set in bulk metadata for docs paths.
@@ -298,11 +505,11 @@ export const decorateLinks = (block) => {
  *                      docs-landing, docs (optional, default value is docs)
  */
 export function isDocPage(type = 'docs') {
-  const theme = getMetadata('theme');
-  return theme
-    .split(',')
-    .map((t) => t.toLowerCase().trim())
-    .includes(type);
+  return isPageOfType(type);
+}
+
+export function isArticlePage(type = 'articles') {
+  return isPageOfType(type);
 }
 
 /**
@@ -373,9 +580,9 @@ const parseInlineAttributes = (attrs) => {
   const result = {};
   attrs
     .split(/\s+(?=(?:[^"]*"[^"]*")*[^"]*$)/g) // match spaces only if not within quotes
-    .forEach((attr) => {
-      const [key, value] = attr.split('=');
-      result[key] = encodeHTML(value.replace(/"/g, ''));
+    .map((attr) => attr.split('='))
+    .forEach(([key, value]) => {
+      result[key] = value === undefined ? undefined : encodeHTML(value?.replace(/"/g, '') || '');
     });
   return result;
 };
@@ -387,10 +594,12 @@ const parseInlineAttributes = (attrs) => {
  */
 export const getDecoratedInlineHtml = (inputStr) => {
   if (!inputStr) return inputStr;
-  const regex = /\[([^[\]]*)\]\{(.*?)\}/g;
+  const regex = /\[([^[\]]*)\]{([^}]+)}/g;
   return inputStr.replace(regex, (match, text, attrs) => {
     const encodedText = encodeHTML(text);
     const attrsObj = parseInlineAttributes(attrs);
+    const validAttrs = Object.values(attrsObj).every((v) => v !== undefined);
+    if (!validAttrs) return match; // ignore expresssion that have attributes with undefined values
     const newAttrs = Object.entries(attrsObj)
       .map(([key, value]) => `${key}="${value}"`)
       .join(' ');
@@ -470,7 +679,11 @@ export function decoratePreviousImage(textNode) {
  * @param {HTMLElement} element
  */
 export function decorateInlineAttributes(element) {
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  const ignoredElements = ['pre', 'code', 'script', 'style'];
+  const isParentIgnored = (node) => ignoredElements.includes(node?.parentElement?.tagName?.toLowerCase());
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, (node) =>
+    isParentIgnored(node) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+  );
   while (walker.nextNode()) {
     const { currentNode } = walker;
     decorateInlineText(currentNode);
@@ -542,8 +755,20 @@ export function getConfig() {
       hlxLive: 'main--exlm-prod--adobe-experience-league.hlx.live',
     },
     {
+      env: 'PROD-AUTHOR',
+      cdn: 'author-p122525-e1219150.adobeaemcloud.com',
+      hlxPreview: 'main--exlm-prod--adobe-experience-league.hlx.page',
+      hlxLive: 'main--exlm-prod--adobe-experience-league.hlx.live',
+    },
+    {
       env: 'STAGE',
       cdn: 'experienceleague-stage.adobe.com',
+      hlxPreview: 'main--exlm-stage--adobe-experience-league.hlx.page',
+      hlxLive: 'main--exlm-stage--adobe-experience-league.live',
+    },
+    {
+      env: 'STAGE-AUTHOR',
+      cdn: 'author-p122525-e1219192.adobeaemcloud.com',
       hlxPreview: 'main--exlm-stage--adobe-experience-league.hlx.page',
       hlxLive: 'main--exlm-stage--adobe-experience-league.live',
     },
@@ -562,8 +787,8 @@ export function getConfig() {
   const cdnOrigin = `https://${cdnHost}`;
   const lang = document.querySelector('html').lang || 'en';
   const prodAssetsCdnOrigin = 'https://cdn.experienceleague.adobe.com';
-  const isProd = currentEnv?.env === 'PROD';
-  const isStage = currentEnv?.env === 'STAGE';
+  const isProd = currentEnv?.env.includes('PROD', 'PROD-AUTHOR');
+  const isStage = currentEnv?.env.includes('STAGE', 'STAGE-AUTHOR');
   const ppsOrigin = isProd ? 'https://pps.adobe.io' : 'https://pps-stage.adobe.io';
   const ims = {
     client_id: 'ExperienceLeague',
@@ -572,13 +797,14 @@ export function getConfig() {
   };
 
   let launchScriptSrc;
-  if (isProd) launchScriptSrc = 'https://assets.adobedtm.com/a7d65461e54e/6e9802a06173/launch-43baf8381f4b.min.js';
+  if (isProd) launchScriptSrc = 'https://assets.adobedtm.com/d4d114c60e50/9f881954c8dc/launch-7a902c4895c3.min.js';
   else if (isStage)
-    launchScriptSrc = 'https://assets.adobedtm.com/a7d65461e54e/6e9802a06173/launch-dbb3f007358e-staging.min.js';
+    launchScriptSrc = 'https://assets.adobedtm.com/d4d114c60e50/9f881954c8dc/launch-102059c3cf0a-staging.min.js';
   else launchScriptSrc = 'https://assets.adobedtm.com/d4d114c60e50/9f881954c8dc/launch-caabfb728852-development.js';
 
   window.exlm = window.exlm || {};
   window.exlm.config = {
+    isProd,
     ims,
     currentEnv,
     cdnOrigin,
@@ -587,11 +813,16 @@ export function getConfig() {
     ppsOrigin,
     launchScriptSrc,
     khorosProfileUrl: `${cdnOrigin}/api/action/khoros/profile-menu-list`,
+    khorosProfileDetailsUrl: `${cdnOrigin}/api/action/khoros/profile-details`,
     privacyScript: `${cdnOrigin}/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js`,
     profileUrl: `${cdnOrigin}/api/profile?lang=${lang}`,
     JWTTokenUrl: `${cdnOrigin}/api/token?lang=${lang}`,
     coveoTokenUrl: `${cdnOrigin}/api/coveo-token?lang=${lang}`,
-    coveoSearchResultsUrl: 'https://platform.cloud.coveo.com/rest/search/v2',
+    coveoSearchResultsUrl: isProd
+      ? 'https://platform.cloud.coveo.com/rest/search/v2'
+      : 'https://adobesystemsincorporatednonprod1.org.coveo.com/rest/search/v2',
+    coveoOrganizationId: isProd ? 'adobev2prod9e382h1q' : 'adobesystemsincorporatednonprod1',
+    coveoToken: 'xxcfe1b6e9-3628-49b5-948d-ed50d3fa6c99',
     liveEventsUrl: `${prodAssetsCdnOrigin}/thumb/upcoming-events.json`,
     adlsUrl: 'https://learning.adobe.com/catalog.result.json',
     searchUrl: `${cdnOrigin}/search.html`,
@@ -604,8 +835,33 @@ export function getConfig() {
     automaticTranslationLink: `/${lang}/docs/contributor/contributor-guide/localization/machine-translation`,
     // Recommended Courses
     recommendedCoursesUrl: `${cdnOrigin}/home?lang=${lang}#dashboard/learning`,
+    // Adobe account
+    adobeAccountURL: isProd ? 'https://account.adobe.com/' : 'https://stage.account.adobe.com/',
+    // Community Account
+    communityAccountURL: isProd
+      ? 'https://experienceleaguecommunities.adobe.com/'
+      : 'https://experienceleaguecommunities-dev.adobe.com/',
+    // Stream API
+    eventSourceStreamUrl: '/api/stream',
   };
   return window.exlm.config;
+}
+
+/**
+ * one trust configuration setup
+ */
+function loadOneTrust() {
+  window.fedsConfig = window.fedsConfig || {};
+  window.fedsConfig.privacy = window.fedsConfig.privacy || {};
+  window.fedsConfig.privacy.otDomainId = `7a5eb705-95ed-4cc4-a11d-0cc5760e93db${
+    window.location.host.split('.').length === 3 ? '' : '-test'
+  }`;
+  window.fedsConfig.privacy.footerLinkSelector = '.footer [href="#onetrust"]';
+  const { privacyScript } = getConfig();
+  return loadScript(privacyScript, {
+    async: true,
+    defer: true,
+  });
 }
 
 export const locales = new Map([
@@ -648,50 +904,76 @@ export async function loadIms() {
 }
 
 const loadMartech = async (headerPromise, footerPromise) => {
-  const { privacyScript, launchScriptSrc } = getConfig();
-  oneTrust();
-
-  const oneTrustPromise = loadScript(privacyScript, {
-    async: true,
-    defer: true,
-  });
-
-  const launchPromise = loadScript(launchScriptSrc, {
-    async: true,
-  });
-
+  console.time('martech');
+  console.timeLog('martech', `start loading lib-analytics.js ${Date.now()}`);
+  // start datalayer work early
   // eslint-disable-next-line import/no-cycle
   const libAnalyticsPromise = import('./analytics/lib-analytics.js');
+  libAnalyticsPromise.then((libAnalyticsModule) => {
+    console.timeLog('martech', `finished loading lib-analytics.js ${Date.now()}`);
+    const { pushPageDataLayer, pushLinkClick, pageName } = libAnalyticsModule;
+    const { lang } = getPathDetails();
+    pushPageDataLayer(lang)
+      // eslint-disable-next-line no-console
+      .catch((e) => console.error('Error getting pageLoadModel:', e));
+    localStorage.setItem('prevPage', pageName(lang));
 
-  Promise.all([launchPromise, libAnalyticsPromise, headerPromise, footerPromise, oneTrustPromise]).then(
-    // eslint-disable-next-line no-unused-vars
-    ([launch, libAnalyticsModule, headPr, footPr]) => {
-      const { lang } = getPathDetails();
-      const { pageLoadModel, linkClickModel, pageName } = libAnalyticsModule;
-      document.querySelector('[href="#onetrust"]').addEventListener('click', (e) => {
-        e.preventDefault();
-        window.adobePrivacy.showConsentPopup();
-      });
-      pageLoadModel(lang)
-        .then((data) => {
-          window.adobeDataLayer.push(data);
-        })
-        .catch((e) => {
-          // eslint-disable-next-line no-console
-          console.error('Error getting pageLoadModel:', e);
-        });
-      localStorage.setItem('prevPage', pageName(lang));
+    Promise.allSettled([headerPromise, footerPromise]).then(() => {
+      console.timeLog('martech', `add click event tracking ${Date.now()}`);
       const linkClicked = document.querySelectorAll('a,.view-more-less span, .language-selector-popover span');
-      linkClicked.forEach((linkElement) => {
-        linkElement.addEventListener('click', (e) => {
-          if (e.target.tagName === 'A' || e.target.tagName === 'SPAN') {
-            linkClickModel(e);
-          }
-        });
-      });
+      const clickHandler = (e) => {
+        if (e.target.tagName === 'A' || e.target.tagName === 'SPAN') pushLinkClick(e);
+      };
+      linkClicked.forEach((e) => e.addEventListener('click', clickHandler));
+    });
+  });
+
+  // load one trust
+  console.timeLog('martech', `onetrust: start load onetrust script ${Date.now()}`);
+  const oneTrustPromise = loadOneTrust().then(() => {
+    console.timeLog('martech', `onetrust: loaded one trust script ${Date.now()}`);
+  });
+
+  // load launch
+  console.timeLog('martech', `launch: start load launch script ${Date.now()}`);
+  const { launchScriptSrc } = getConfig();
+  const launchScriptPromise = loadScript(launchScriptSrc, {
+    async: true,
+  });
+  launchScriptPromise.then(() => {
+    console.timeLog('martech', `launch: loaded launch script ${Date.now()}`);
+  });
+
+  // footer and one trust loaded, add event listener to open one trust popup,
+  Promise.all([footerPromise, oneTrustPromise]).then(() => {
+    console.timeLog('martech', `onetrust: set event listeners ${Date.now()}`);
+    document.querySelector('[href="#onetrust"]').addEventListener('click', (e) => {
+      e.preventDefault();
+      window.adobePrivacy.showConsentPopup();
+    });
+  });
+
+  Promise.allSettled([headerPromise, footerPromise, oneTrustPromise, launchScriptPromise, libAnalyticsPromise]).then(
+    () => {
+      setTimeout(() => {
+        console.timeLog('martech', `all done. ${Date.now()}`);
+        console.timeEnd('martech');
+      }, 0);
     },
   );
 };
+
+async function loadThemes() {
+  const toClassNames = (classes) =>
+    classes
+      ?.split(',')
+      ?.map((c) => toClassName(c.trim()))
+      .filter(Boolean) || [];
+  const metaToClassNames = (metaName) => toClassNames(getMetadata(metaName));
+  const themeNames = [...metaToClassNames('template'), ...metaToClassNames('theme')];
+  if (themeNames.length === 0) return Promise.resolve();
+  return Promise.allSettled(themeNames.map((theme) => loadCSS(`${window.hlx.codeBasePath}/styles/theme/${theme}.css`)));
+}
 
 /**
  * Loads everything that doesn't need to be delayed.
@@ -699,8 +981,9 @@ const loadMartech = async (headerPromise, footerPromise) => {
  */
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
-  await loadBlocks(main);
   loadIms(); // start it early, asyncronously
+  await loadThemes();
+  await loadBlocks(main);
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
@@ -782,6 +1065,35 @@ async function loadRails() {
   }
 }
 
+/**
+ * Custom - Loads and builds layout for articles page
+ */
+async function loadArticles() {
+  if (isArticlePage()) {
+    loadCSS(`${window.hlx.codeBasePath}/scripts/articles/articles.css`);
+    const mod = await import('./articles/articles.js');
+    if (mod.default) {
+      await mod.default();
+    }
+    const contentContainer = document.createElement('div');
+    contentContainer.classList.add('article-content-container');
+    if (!document.querySelector('main > .article-content-section, main > .tab-section')) {
+      document.querySelector('main > .mini-toc-section').remove();
+    } else {
+      document
+        .querySelectorAll('main > .article-content-section, main > .tab-section, main > .mini-toc-section')
+        .forEach((section) => {
+          contentContainer.append(section);
+        });
+      if (document.querySelector('.article-header-section')) {
+        document.querySelector('.article-header-section').after(contentContainer);
+      } else {
+        document.querySelector('main').prepend(contentContainer);
+      }
+    }
+  }
+}
+
 function showBrowseBackgroundGraphic() {
   if (isBrowsePage()) {
     const main = document.querySelector('main');
@@ -830,6 +1142,19 @@ export function rewriteDocsPath(docsPath) {
   return url.toString().replace(PROD_BASE, ''); // always remove PROD_BASE if exists
 }
 
+export async function fetchWithFallback(path, fallbackPath) {
+  const response = await fetch(path);
+  if (response.ok) return response;
+  return fetch(fallbackPath);
+}
+
+export async function fetchFragment(rePath, lang = 'en') {
+  const path = `/fragments/${lang}/${rePath}.plain.html`;
+  const fallback = `/fragments/en/${rePath}.plain.html`;
+  const response = await fetchWithFallback(path, fallback);
+  return response.text();
+}
+
 export async function fetchLanguagePlaceholders() {
   const { lang } = getPathDetails();
   try {
@@ -850,12 +1175,25 @@ export async function fetchLanguagePlaceholders() {
 }
 
 export async function getLanguageCode() {
-  const { lang } = getPathDetails();
-  const { default: ffetch } = await import('./ffetch.js');
-  const langMap = await ffetch(`/languages.json`).all();
-  const langObj = langMap.find((item) => item.key === lang);
-  const langCode = langObj ? langObj.value : lang;
-  return langCode;
+  if (window.languageCode) return window.languageCode;
+  window.languageCode = new Promise((resolve, reject) => {
+    const { lang } = getPathDetails();
+    fetch('/languages.json')
+      .then((response) => response.json())
+      .then((languages) => {
+        const langMap = languages.data;
+        const langObj = langMap.find((item) => item.key === lang);
+        const langCode = langObj ? langObj.value : lang;
+        window.languageCode = langCode;
+        resolve(langCode);
+      })
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching language code:', error);
+        reject(error);
+      });
+  });
+  return window.languageCode;
 }
 
 async function loadDefaultModule(jsPath) {
@@ -883,19 +1221,156 @@ function handleHomePageHashes() {
   return false;
 }
 
+/**
+ * @param {string} placeholderKey
+ * @param {string} fallbackText
+ * @returns
+ */
+export function createPlaceholderSpan(placeholderKey, fallbackText, onResolved, onRejected) {
+  const span = document.createElement('span');
+  span.setAttribute('data-placeholder', placeholderKey);
+  span.setAttribute('data-placeholder-fallback', fallbackText);
+  span.style.setProperty('--placeholder-width', `${fallbackText.length}ch`);
+  fetchLanguagePlaceholders()
+    .then((placeholders) => {
+      span.textContent = placeholders[placeholderKey] || fallbackText;
+      span.removeAttribute('data-placeholder');
+      span.removeAttribute('data-placeholder-fallback');
+      span.style.removeProperty('--placeholder-width');
+      if (onResolved) onResolved(span);
+    })
+    .catch(() => {
+      span.textContent = fallbackText;
+      if (onRejected) onRejected(span);
+    });
+  return span;
+}
+
+/**
+ * decorates placeholder spans in a given element
+ * @param {HTMLElement} element
+ */
+export function decoratePlaceholders(element) {
+  const placeholdersEls = [...element.querySelectorAll('[data-placeholder]')];
+  placeholdersEls.forEach((el) => {
+    el.replaceWith(createPlaceholderSpan(el.dataset.placeholder, el.textContent));
+  });
+}
+
+function formatPageMetaTags(inputString) {
+  return inputString
+    .replace(/exl:[^/]*\/*/g, '')
+    .split(',')
+    .map((part) => part.trim());
+}
+
+function decodeAemPageMetaTags() {
+  const solutionMeta = document.querySelector(`meta[name="coveo-solution"]`);
+  const roleMeta = document.querySelector(`meta[name="role"]`);
+  const levelMeta = document.querySelector(`meta[name="level"]`);
+  const featureMeta = document.querySelector(`meta[name="feature"]`);
+
+  const solutions = solutionMeta ? formatPageMetaTags(solutionMeta.content) : [];
+  const features = featureMeta ? formatPageMetaTags(featureMeta.content) : [];
+  const roles = roleMeta ? formatPageMetaTags(roleMeta.content) : [];
+  const experienceLevels = levelMeta ? formatPageMetaTags(levelMeta.content) : [];
+  let decodedSolutions = [];
+  decodedSolutions = solutions.map((solution) => {
+    // In case of sub-solutions. E.g. exl:solution/campaign/standard
+    const parts = solution.split('/');
+    const decodedParts = parts.map((part) => atob(part));
+
+    // If it's a sub-solution, create a version meta tag
+    if (parts.length > 1) {
+      const versionMeta = document.createElement('meta');
+      versionMeta.name = 'version';
+      versionMeta.content = atob(parts.slice(1).join('/'));
+      document.head.appendChild(versionMeta);
+
+      // If there are multiple parts, join them with ";"
+      const product = atob(parts[0]);
+      const version = atob(parts[1]);
+      return `${product}|${product} ${version}`;
+    }
+
+    return decodedParts[0];
+  });
+
+  const decodedFeatures = features
+    .map((feature) => {
+      const parts = feature.split('/');
+      if (parts.length > 1) {
+        const product = atob(parts[0]);
+        if (!decodedSolutions.includes(product)) {
+          decodedSolutions.push(product);
+        }
+        const featureTag = atob(parts[1]);
+        return `${featureTag}`;
+      }
+      decodedSolutions.push(atob(parts[0]));
+      return '';
+    })
+    .filter((feature) => feature !== '');
+
+  const decodedRoles = roles.map((role) => atob(role));
+  const decodedLevels = experienceLevels.map((level) => atob(level));
+
+  if (solutionMeta) {
+    solutionMeta.content = decodedSolutions.join(';');
+  }
+  if (featureMeta) {
+    featureMeta.content = decodedFeatures.join(',');
+  }
+  if (roleMeta) {
+    roleMeta.content = decodedRoles.join(',');
+  }
+  if (levelMeta) {
+    levelMeta.content = decodedLevels.join(',');
+  }
+}
+
 async function loadPage() {
   // THIS IS TEMPORARY FOR SUMMIT.
   if (handleHomePageHashes()) return;
   // END OF TEMPORARY FOR SUMMIT.
   await loadEager(document);
   await loadLazy(document);
+  loadArticles();
   loadRails();
   loadDelayed();
   showBrowseBackgroundGraphic();
-  loadDefaultModule(`${window.hlx.codeBasePath}/scripts/prev-next-btn.js`);
+
+  if (isDocArticlePage()) {
+    loadDefaultModule(`${window.hlx.codeBasePath}/scripts/prev-next-btn.js`);
+
+    const params = new URLSearchParams(window.location.search);
+    const hasDiscoverability = Boolean(params.get('discoverability'));
+
+    if (hasDiscoverability) {
+      loadDefaultModule(`${window.hlx.codeBasePath}/scripts/tutorial-widgets/tutorial-widgets.js`);
+    }
+  }
+}
+
+// For AEM Author mode, decode the tags value
+if (window.hlx.aemRoot || window.location.href.includes('.html')) {
+  decodeAemPageMetaTags();
 }
 
 // load the page unless DO_NOT_LOAD_PAGE is set - used for existing EXLM pages POC
 if (!window.hlx.DO_NOT_LOAD_PAGE) {
-  loadPage();
+  if (isProfilePage()) {
+    if (window.location.href.includes('.html')) {
+      loadPage();
+    } else {
+      await loadIms();
+      if (window?.adobeIMS?.isSignedInUser()) {
+        loadPage();
+      } else {
+        await window?.adobeIMS?.signIn();
+      }
+    }
+  } else {
+    loadPage();
+  }
 }

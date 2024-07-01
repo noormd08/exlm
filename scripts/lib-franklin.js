@@ -191,7 +191,7 @@ const ICONS_CACHE = {};
  * Replace icons with inline SVG and prefix with codeBasePath.
  * @param {Element} [element] Element containing icons
  */
-export async function decorateIcons(element) {
+export async function decorateIcons(element, prefix = '') {
   // Prepare the inline sprite
   let svgSprite = document.getElementById('franklin-svg-sprite');
   if (!svgSprite) {
@@ -211,7 +211,7 @@ export async function decorateIcons(element) {
       if (!ICONS_CACHE[iconName]) {
         ICONS_CACHE[iconName] = true;
         try {
-          const response = await fetch(`${window.hlx.codeBasePath}/icons/${iconName}.svg`);
+          const response = await fetch(`${window.hlx.codeBasePath}/icons/${prefix}${iconName}.svg`);
           if (!response.ok) {
             ICONS_CACHE[iconName] = false;
             return;
@@ -312,7 +312,7 @@ export async function fetchPlaceholders(prefix = 'default') {
  */
 export function decorateBlock(block) {
   const shortBlockName = block.classList[0];
-  if (shortBlockName) {
+  if (shortBlockName && !block.dataset.blockStatus) {
     block.classList.add('block');
     block.dataset.blockName = shortBlockName;
     block.dataset.blockStatus = 'initialized';
@@ -672,8 +672,9 @@ export async function waitForLCP(lcpBlocks) {
   document.body.style.display = null;
   const lcpCandidate = document.querySelector('main img');
   await new Promise((resolve) => {
-    if (lcpCandidate && lcpCandidate.src === 'about:error') resolve(); // error loading image
-    else if (lcpCandidate && !lcpCandidate.complete) {
+    if (lcpCandidate && lcpCandidate.src === 'about:error') {
+      resolve(); // error loading image
+    } else if (lcpCandidate && !lcpCandidate.complete) {
       lcpCandidate.setAttribute('loading', 'eager');
       lcpCandidate.addEventListener('load', resolve);
       lcpCandidate.addEventListener('error', resolve);

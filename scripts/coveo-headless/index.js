@@ -1,5 +1,4 @@
 import buildHeadlessSearchEngine from './engine.js';
-import loadCoveoToken from '../data-service/coveo/coveo-token-service.js';
 import { fetchLanguagePlaceholders } from '../scripts.js';
 import { handleCoverSearchSubmit } from '../../blocks/browse-filters/browse-filter-utils.js';
 
@@ -19,8 +18,6 @@ const locales = new Map([
   ['zh-hant', 'zh-TW'],
 ]);
 
-const coveoToken = await loadCoveoToken();
-
 function configureSearchHeadlessEngine({ module, searchEngine, searchHub, contextObject, advancedQueryRule }) {
   const advancedQuery = module.loadAdvancedSearchQueryActions(searchEngine).registerAdvancedSearchQueries({
     aq: advancedQueryRule || '',
@@ -37,6 +34,10 @@ function configureSearchHeadlessEngine({ module, searchEngine, searchHub, contex
       '@foldingcollection',
       '@foldingparent',
       'author',
+      'authortype',
+      'authorname',
+      'author_type',
+      'author_name',
       'collection',
       'connectortype',
       'contenttype',
@@ -56,6 +57,7 @@ function configureSearchHeadlessEngine({ module, searchEngine, searchHub, contex
       'el_usergenerictext',
       'el_version',
       'el_view_status',
+      'el_author_type',
       'filetype',
       'language',
       'liMessageLabels',
@@ -73,6 +75,7 @@ function configureSearchHeadlessEngine({ module, searchEngine, searchHub, contex
       'type',
       'urihash',
       'video_url',
+      'id',
     ]);
 
   searchEngine.dispatch(advancedQuery);
@@ -97,8 +100,8 @@ export default async function initiateCoveoHeadlessSearch({
   return new Promise((resolve, reject) => {
     // eslint-disable-next-line import/no-relative-packages
     import('./libs/browser/headless.esm.js')
-      .then((module) => {
-        const headlessSearchEngine = buildHeadlessSearchEngine(module, coveoToken);
+      .then(async (module) => {
+        const headlessSearchEngine = await buildHeadlessSearchEngine(module);
         const statusControllers = module.buildSearchStatus(headlessSearchEngine);
 
         configureSearchHeadlessEngine({
@@ -133,6 +136,20 @@ export default async function initiateCoveoHeadlessSearch({
         const headlessExperienceFacet = module.buildFacet(headlessSearchEngine, {
           options: {
             field: 'el_level',
+          },
+          numberOfValues: 8,
+        });
+
+        const headlessProductFacet = module.buildFacet(headlessSearchEngine, {
+          options: {
+            field: 'el_product',
+          },
+          numberOfValues: 8,
+        });
+
+        const headlessAuthorTypeFacet = module.buildFacet(headlessSearchEngine, {
+          options: {
+            field: 'author_type',
           },
           numberOfValues: 8,
         });
@@ -264,6 +281,8 @@ export default async function initiateCoveoHeadlessSearch({
         window.headlessTypeFacet = headlessTypeFacet;
         window.headlessRoleFacet = headlessRoleFacet;
         window.headlessExperienceFacet = headlessExperienceFacet;
+        window.headlessProductFacet = headlessProductFacet;
+        window.headlessAuthorTypeFacet = headlessAuthorTypeFacet;
         window.headlessStatusControllers = statusControllers;
         window.headlessPager = headlessPager;
         window.headlessResultsPerPage = headlessResultsPerPage;
@@ -302,79 +321,81 @@ export default async function initiateCoveoHeadlessSearch({
         });
 
         const sortContainer = document.querySelector('.sort-container');
-        sortContainer.appendChild(sortWrapperEl);
-        const sortDropdown = sortContainer.querySelector('.sort-dropdown-content');
-        const sortAnchors = sortDropdown.querySelectorAll('a');
-        const sortBtn = sortContainer.querySelector('.sort-drop-btn');
-        let criteria = [[]];
-        const isSortValueInHash = hashURL.split('&');
-        // eslint-disable-next-line
-        isSortValueInHash.filter((item) => {
-          if (item.includes('sortCriteria')) {
-            const scValue = decodeURIComponent(item.split('=')[1]);
-            // eslint-disable-next-line
-            switch (scValue) {
-              case 'relevancy':
-                sortBtn.innerHTML = sortLabel.relevance;
-                criteria = [[sortLabel.relevance, module.buildRelevanceSortCriterion()]];
-                break;
-              case '@el_view_count descending':
-                sortBtn.innerHTML = sortLabel.popularity;
-                criteria = [[sortLabel.popularity, module.buildFieldSortCriterion('el_view_count', 'descending')]];
-                break;
-              case 'date descending':
-                sortBtn.innerHTML = sortLabel.newest;
-                criteria = [[sortLabel.newest, module.buildDateSortCriterion('descending')]];
-                break;
-              case 'date ascending':
-                sortBtn.innerHTML = sortLabel.oldest;
-                criteria = [[sortLabel.oldest, module.buildDateSortCriterion('ascending')]];
-                break;
-            }
-          }
-        });
-
-        const initialCriterion = criteria[0][1];
-
-        const headlessBuildSort = module.buildSort(headlessSearchEngine, {
-          initialState: { criterion: initialCriterion },
-        });
-
-        if (sortAnchors.length > 0) {
-          sortAnchors.forEach((anchor) => {
-            const anchorCaption = anchor.getAttribute('data-sort-caption');
-            const anchorSortCriteria = anchor.getAttribute('data-sort-criteria');
-
-            if (anchorCaption === sortBtn.innerHTML) {
-              anchor.classList.add('selected');
-            }
-
-            anchor.addEventListener('click', (e) => {
-              e.preventDefault();
-              sortAnchors.forEach((anch) => {
-                anch.classList.remove('selected');
-              });
-              anchor.classList.add('selected');
-              sortDropdown.classList.remove('show');
-              sortBtn.innerHTML = anchorCaption;
-
+        if (sortContainer) {
+          sortContainer.appendChild(sortWrapperEl);
+          const sortDropdown = sortContainer.querySelector('.sort-dropdown-content');
+          const sortAnchors = sortDropdown.querySelectorAll('a');
+          const sortBtn = sortContainer.querySelector('.sort-drop-btn');
+          let criteria = [[]];
+          const isSortValueInHash = hashURL.split('&');
+          // eslint-disable-next-line
+          isSortValueInHash.filter((item) => {
+            if (item.includes('sortCriteria')) {
+              const scValue = decodeURIComponent(item.split('=')[1]);
               // eslint-disable-next-line
-              switch (anchorSortCriteria) {
+              switch (scValue) {
                 case 'relevancy':
-                  headlessBuildSort.sortBy(module.buildRelevanceSortCriterion());
+                  sortBtn.innerHTML = sortLabel.relevance;
+                  criteria = [[sortLabel.relevance, module.buildRelevanceSortCriterion()]];
                   break;
-                case 'el_view_count descending':
-                  headlessBuildSort.sortBy(module.buildFieldSortCriterion('el_view_count', 'descending'));
+                case '@el_view_count descending':
+                  sortBtn.innerHTML = sortLabel.popularity;
+                  criteria = [[sortLabel.popularity, module.buildFieldSortCriterion('el_view_count', 'descending')]];
                   break;
-                case 'descending':
-                  headlessBuildSort.sortBy(module.buildDateSortCriterion('descending'));
+                case 'date descending':
+                  sortBtn.innerHTML = sortLabel.newest;
+                  criteria = [[sortLabel.newest, module.buildDateSortCriterion('descending')]];
                   break;
-                case 'ascending':
-                  headlessBuildSort.sortBy(module.buildDateSortCriterion('ascending'));
+                case 'date ascending':
+                  sortBtn.innerHTML = sortLabel.oldest;
+                  criteria = [[sortLabel.oldest, module.buildDateSortCriterion('ascending')]];
                   break;
               }
-            });
+            }
           });
+
+          const initialCriterion = criteria[0][1];
+
+          const headlessBuildSort = module.buildSort(headlessSearchEngine, {
+            initialState: { criterion: initialCriterion },
+          });
+
+          if (sortAnchors.length > 0) {
+            sortAnchors.forEach((anchor) => {
+              const anchorCaption = anchor.getAttribute('data-sort-caption');
+              const anchorSortCriteria = anchor.getAttribute('data-sort-criteria');
+
+              if (anchorCaption === sortBtn.innerHTML) {
+                anchor.classList.add('selected');
+              }
+
+              anchor.addEventListener('click', (e) => {
+                e.preventDefault();
+                sortAnchors.forEach((anch) => {
+                  anch.classList.remove('selected');
+                });
+                anchor.classList.add('selected');
+                sortDropdown.classList.remove('show');
+                sortBtn.innerHTML = anchorCaption;
+
+                // eslint-disable-next-line
+                switch (anchorSortCriteria) {
+                  case 'relevancy':
+                    headlessBuildSort.sortBy(module.buildRelevanceSortCriterion());
+                    break;
+                  case 'el_view_count descending':
+                    headlessBuildSort.sortBy(module.buildFieldSortCriterion('el_view_count', 'descending'));
+                    break;
+                  case 'descending':
+                    headlessBuildSort.sortBy(module.buildDateSortCriterion('descending'));
+                    break;
+                  case 'ascending':
+                    headlessBuildSort.sortBy(module.buildDateSortCriterion('ascending'));
+                    break;
+                }
+              });
+            });
+          }
         }
 
         resolve({

@@ -1,15 +1,14 @@
 import { decorateIcons, loadCSS } from '../lib-franklin.js';
 import { createTag, htmlToElement, fetchLanguagePlaceholders, getPathDetails } from '../scripts.js';
 import { createTooltip } from './browse-card-tooltip.js';
-import { CONTENT_TYPES, RECOMMENDED_COURSES_CONSTANTS } from './browse-cards-constants.js';
-import loadJWT from '../auth/jwt.js';
-import { isSignedInUser, profile } from '../data-service/profile-service.js';
+import { CONTENT_TYPES, RECOMMENDED_COURSES_CONSTANTS, AUTHOR_TYPE } from './browse-cards-constants.js';
 import { tooltipTemplate } from '../toast/toast.js';
 import renderBookmark from '../bookmark/bookmark.js';
 import attachCopyLink from '../copy-link/copy-link.js';
+import { defaultProfileClient, isSignedInUser } from '../auth/profile.js';
+import { sendCoveoClickEvent } from '../coveo-analytics.js';
 
 loadCSS(`${window.hlx.codeBasePath}/scripts/browse-card/browse-card.css`);
-loadCSS(`${window.hlx.codeBasePath}/scripts/toast/toast.css`);
 
 /* Fetch data from the Placeholder.json */
 let placeholders = {};
@@ -165,12 +164,12 @@ const buildCardCtaContent = ({ cardFooter, contentType, viewLinkText }) => {
   if (viewLinkText) {
     let icon = null;
     let isLeftPlacement = false;
-    if (contentType.toLowerCase() === CONTENT_TYPES.TUTORIAL.MAPPING_KEY) {
+    if (contentType?.toLowerCase() === CONTENT_TYPES.TUTORIAL.MAPPING_KEY) {
       icon = 'play-outline';
       isLeftPlacement = false;
     } else if (
       [CONTENT_TYPES.LIVE_EVENT.MAPPING_KEY, CONTENT_TYPES.INSTRUCTOR_LED.MAPPING_KEY].includes(
-        contentType.toLowerCase(),
+        contentType?.toLowerCase(),
       )
     ) {
       icon = 'new-tab';
@@ -195,11 +194,12 @@ const buildCardContent = async (card, model) => {
     viewLinkText,
     copyLink,
     tags,
+    authorInfo,
     event,
     inProgressText,
     inProgressStatus = {},
   } = model;
-  const contentType = type.toLowerCase();
+  const contentType = type?.toLowerCase();
   const cardContent = card.querySelector('.browse-card-content');
   const cardFooter = card.querySelector('.browse-card-footer');
 
@@ -243,6 +243,34 @@ const buildCardContent = async (card, model) => {
   if (contentType === CONTENT_TYPES.LIVE_EVENT.MAPPING_KEY) {
     buildEventContent({ event, cardContent, card });
   }
+
+  if (contentType === CONTENT_TYPES.ARTICLE.MAPPING_KEY) {
+    const authorElement = createTag('div', { class: 'browse-card-author-info' });
+
+    if (authorInfo?.name) {
+      const authorPrefix = createTag(
+        'span',
+        { class: 'browse-card-author-prefix' },
+        placeholders?.articleAuthorPrefixLabel,
+      );
+      const authorName = createTag('span', { class: 'browse-card-author-name' }, authorInfo?.name);
+      authorElement.append(authorPrefix, authorName);
+    }
+
+    let authorBadge = '';
+    if (authorInfo?.type === AUTHOR_TYPE.ADOBE) {
+      authorBadge = createTag('span', { class: 'browse-card-author-badge' }, placeholders?.articleAdobeTag);
+    } else if (authorInfo?.type === AUTHOR_TYPE.EXTERNAL) {
+      authorBadge = createTag('span', { class: 'browse-card-author-badge' }, placeholders?.articleExternalTag);
+      authorBadge.classList.add('author-badge-external');
+    }
+    if (authorBadge) {
+      authorElement.append(authorBadge);
+    }
+
+    cardContent.appendChild(authorElement);
+  }
+
   const cardOptions = document.createElement('div');
   cardOptions.classList.add('browse-card-options');
   if (
@@ -284,15 +312,14 @@ const buildCardContent = async (card, model) => {
 };
 
 const setupBookmarkAction = (wrapper) => {
-  loadJWT().then(async () => {
-    profile().then(async (data) => {
-      const bookmarkAuthed = Array.from(wrapper.querySelectorAll('.browse-card-footer .browse-card-options .bookmark'));
-      bookmarkAuthed.forEach((bookmark) => {
-        if (data?.bookmarks.includes(bookmark.getAttribute('data-id'))) {
-          bookmark.querySelector('.bookmark-icon').classList.add('authed');
-          bookmark.querySelector('.exl-tooltip-label').innerHTML = `${placeholders.bookmarkAuthLabelRemove}`;
-        }
-      });
+  defaultProfileClient.getMergedProfile().then(async (data) => {
+    const bookmarkAuthed = Array.from(wrapper.querySelectorAll('.browse-card-footer .browse-card-options .bookmark'));
+    bookmarkAuthed.forEach((bookmark) => {
+      const bookmarkId = bookmark.getAttribute('data-id');
+      if (data?.bookmarks?.find((bookmarkIdInfo) => bookmarkIdInfo.includes(bookmarkId))) {
+        bookmark.querySelector('.bookmark-icon').classList.add('authed');
+        bookmark.querySelector('.exl-tooltip-label').innerHTML = `${placeholders.bookmarkAuthLabelRemove}`;
+      }
     });
   });
 
@@ -313,6 +340,22 @@ const setupCopyAction = (wrapper) => {
   });
 };
 
+/**
+ * @typedef {Object} CardModel
+ * @property {string} thumbnail
+ * @property {string[]} product
+ * @property {string} title
+ * @property {string} contentType
+ * @property {string} badgeTitle
+ * @property {number} inProgressStatus
+ */
+
+/**
+ *
+ * @param {HTMLElement} container
+ * @param {HTMLElement} element
+ * @param {*} model
+ */
 export async function buildCard(container, element, model) {
   const { thumbnail, product, title, contentType, badgeTitle, inProgressStatus } = model;
   // lowercase all urls - because all of our urls are lower-case
@@ -363,9 +406,11 @@ export async function buildCard(container, element, model) {
     });
   }
 
-  const bannerElement = createTag('h3', { class: 'browse-card-banner' });
-  bannerElement.innerText = badgeTitle;
-  cardFigure.appendChild(bannerElement);
+  if (badgeTitle) {
+    const bannerElement = createTag('h3', { class: 'browse-card-banner' });
+    bannerElement.innerText = badgeTitle || '';
+    cardFigure.appendChild(bannerElement);
+  }
 
   if (contentType === RECOMMENDED_COURSES_CONSTANTS.IN_PROGRESS.MAPPING_KEY) {
     buildInProgressBarContent({ inProgressStatus, cardFigure, card });
@@ -413,7 +458,7 @@ export async function buildCard(container, element, model) {
     });
     if (
       [CONTENT_TYPES.LIVE_EVENT.MAPPING_KEY, CONTENT_TYPES.INSTRUCTOR_LED.MAPPING_KEY].includes(
-        contentType.toLowerCase(),
+        contentType?.toLowerCase(),
       )
     ) {
       cardContainer.setAttribute('target', '_blank');
@@ -423,5 +468,13 @@ export async function buildCard(container, element, model) {
   } else {
     element.appendChild(card);
   }
+
+  element.querySelector('a').addEventListener(
+    'click',
+    () => {
+      sendCoveoClickEvent('browse-card', model);
+    },
+    { once: true },
+  );
   decorateIcons(element);
 }

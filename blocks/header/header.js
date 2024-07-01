@@ -1,4 +1,4 @@
-import { isSignedInUser } from '../../scripts/data-service/profile-service.js';
+import { defaultProfileClient, isSignedInUser, signOut } from '../../scripts/auth/profile.js';
 import { decorateIcons, loadCSS, getMetadata } from '../../scripts/lib-franklin.js';
 import {
   htmlToElement,
@@ -6,11 +6,13 @@ import {
   fetchLanguagePlaceholders,
   decorateLinks,
   getConfig,
+  getLink,
+  fetchFragment,
 } from '../../scripts/scripts.js';
+import getProducts from '../../scripts/utils/product-utils.js';
 
 const languageModule = import('../../scripts/language.js');
-const authOperationsModule = import('../../scripts/auth/auth-operations.js');
-const { khorosProfileUrl, ppsOrigin, ims } = getConfig();
+const { khorosProfileUrl, isProd } = getConfig();
 
 let searchElementPromise = null;
 
@@ -178,11 +180,6 @@ const randomId = (length = 6) =>
  */
 const getCell = (block, row, cell) => block.querySelector(`:scope > div:nth-child(${row}) > div:nth-child(${cell})`);
 
-// fetch fragment html
-const fetchFragment = async (rePath, lang = 'en') => {
-  const response = await fetch(`/fragments/${lang}/${rePath}.plain.html`);
-  return response.text();
-};
 // Mobile Only (Until 1024px)
 const isMobile = () => window.matchMedia('(max-width: 1023px)').matches;
 
@@ -421,6 +418,32 @@ const navDecorator = async (navBlock) => {
 
   navBlock.firstChild.id = hamburger.getAttribute('aria-controls');
   navBlock.prepend(hamburger);
+
+  /**
+   * Fetches a list of products to render in main nav.
+   * @async
+   * @function getProducts
+   * @param {string} mode - The mode for fetching products ('browse' or 'articles').
+   * @returns {Promise<Array>} A promise that resolves to an array of products.
+   */
+  const productList = await getProducts('browse');
+
+  [...navBlock.querySelectorAll('.nav-item')].forEach((navItemEl) => {
+    if (navItemEl.querySelector(':scope > a[featured-products]')) {
+      const featuredProductLi = navBlock.querySelector('li.nav-item a[featured-products]');
+      // Remove the <li> element from the DOM
+      featuredProductLi.remove();
+      productList.forEach((item) => {
+        if (item.featured) {
+          const newLi = document.createElement('li');
+          newLi.className = 'nav-item nav-item-leaf';
+          newLi.innerHTML = `<a href="${getLink(item.path)}">${item.title}</a>`;
+          navItemEl.parentNode.appendChild(newLi);
+        }
+      });
+    }
+  });
+
   const isSignedIn = await isSignedInUser();
   if (!isSignedIn) {
     // hide auth-only nav items - see decorateLinks method for details
@@ -447,6 +470,14 @@ const searchDecorator = async (searchBlock) => {
   const searchOptions = getCell(searchBlock, 1, 3)?.firstElementChild?.children || [];
   const options = [...searchOptions].map((option) => option.textContent);
 
+  const parsedOptions = options
+    .map((option) => {
+      const [label, value] = option.split(':');
+      return { label, value };
+    })
+    // TODO - remove this filter once articles need to be live on Prod.
+    .filter((option) => !isProd || option?.value?.toLowerCase() !== 'article');
+
   searchBlock.innerHTML = '';
   const searchWrapper = htmlToElement(
     `<div class="search-wrapper">
@@ -468,23 +499,19 @@ const searchDecorator = async (searchBlock) => {
           </div>
         </div>
         <button type="button" class="search-picker-button" aria-haspopup="true" aria-controls="search-picker-popover">
-          <span class="search-picker-label" data-filter-value="${options[0].split(':')[1]}">${
-            options[0].split(':')[0] || ''
+          <span class="search-picker-label" data-filter-value="${parsedOptions[0]?.value}">${
+            parsedOptions[0]?.label || ''
           }</span>
         </button>
         <div class="search-picker-popover" id="search-picker-popover">
           <ul role="listbox">
-            ${options
+            ${parsedOptions
               .map(
-                (option, index) =>
-                  `<li tabindex="0" role="option" class="search-picker-label" data-filter-value="${
-                    option.split(':')[1]
-                  }">${
+                ({ label, value }, index) =>
+                  `<li tabindex="0" role="option" class="search-picker-label" data-filter-value="${value}">${
                     index === 0
-                      ? `<span class="icon icon-checkmark"></span> <span data-filter-value="${option.split(':')[1]}">${
-                          option.split(':')[0]
-                        }</span>`
-                      : `<span data-filter-value="${option.split(':')[1]}">${option.split(':')[0]}</span>`
+                      ? `<span class="icon icon-checkmark"></span> <span data-filter-value="${value}">${label}</span>`
+                      : `<span data-filter-value="${value}">${label}</span>`
                   }</li>`,
               )
               .join('')}
@@ -520,7 +547,7 @@ const languageDecorator = async (languageBlock) => {
 
   const prependLanguagePopover = async (parent) => {
     await languageModule.then(({ buildLanguagePopover }) => {
-      buildLanguagePopover().then(({ popover, languages }) => {
+      buildLanguagePopover(null, 'language-picker-popover-header').then(({ popover, languages }) => {
         decoratorState.languages.resolve(languages);
         parent.append(popover);
       });
@@ -528,7 +555,7 @@ const languageDecorator = async (languageBlock) => {
   };
 
   const languageHtml = `
-      <button type="button" class="language-selector-button" aria-haspopup="true" aria-controls="language-picker-popover" aria-label="${title}">
+      <button type="button" class="language-selector-button" aria-haspopup="true" aria-controls="language-picker-popover-header" aria-label="${title}">
         <span class="icon icon-globegrid"></span>
       </button>
     `;
@@ -537,17 +564,6 @@ const languageDecorator = async (languageBlock) => {
   prependLanguagePopover(languageBlock);
   return languageBlock;
 };
-
-async function getPPSProfile(accessToken, accountId) {
-  const res = await fetch(`${ppsOrigin}/api/profile`, {
-    headers: {
-      'X-Api-Key': ims.client_id,
-      'X-Account-Id': accountId,
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-  return res.json();
-}
 
 /**
  * Decorates the sign-in block
@@ -570,9 +586,8 @@ const signInDecorator = async (signInBlock) => {
     );
 
     signInBlock.replaceChildren(profile);
-    const { token } = window.adobeIMS.getAccessToken();
-    const accountId = (await window.adobeIMS.getProfile()).userId;
-    getPPSProfile(token, accountId)
+    defaultProfileClient
+      .getPPSProfile()
       .then((ppsProfile) => {
         const profilePicture = ppsProfile?.images['50'];
         if (profilePicture) {
@@ -742,7 +757,6 @@ const profileMenuDecorator = async (profileMenuBlock) => {
 
     if (profileMenuWrapper.querySelector('[data-id="sign-out"]')) {
       profileMenuWrapper.querySelector('[data-id="sign-out"]').addEventListener('click', async () => {
-        const { signOut } = await authOperationsModule;
         signOut();
       });
     }
