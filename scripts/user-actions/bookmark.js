@@ -8,7 +8,12 @@ export async function bookmarkHandler(config) {
     // assetInteractionModel(bookmarkId, 'Bookmarked')
 }
 
-export async function decorateBookmark(bookmarkButton) {
+async function isBookmarked(bookmarkId) {
+    const profile = await defaultProfileClient.getMergedProfile();
+    return profile?.bookmarks.find((bookmarkIdInfo) => bookmarkIdInfo.includes(bookmarkId)) || false;
+}
+
+export async function decorateBookmark(bookmarkButton, id) {
     const isSignedIn = await isSignedInUser();
 
     if (isSignedIn) {
@@ -25,7 +30,7 @@ export async function decorateBookmark(bookmarkButton) {
         bookmarkButton.appendChild(bookmarkTooltip);
         bookmarkButton.appendChild(removeBookmarkTooltip);
 
-        bookmarkButton.dataset.bookmarked = false;
+        bookmarkButton.dataset.bookmarked = isBookmarked(id);
 
         const bookmarkId = '';
         const profileData = await defaultProfileClient.getMergedProfile();
