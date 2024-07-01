@@ -1,16 +1,32 @@
 import { defaultProfileClient, isSignedInUser } from '../auth/profile.js';
 import { createPlaceholderSpan } from '../scripts.js';
 import { sendNotice } from '../toast/toast.js';
+import { assetInteractionModel } from '../analytics/lib-analytics.js';
 
 export async function bookmarkHandler(config) {
     const { element, id, toastText } = config;
-    sendNotice(toastText);
-    // assetInteractionModel(bookmarkId, 'Bookmarked')
+    const profileData = await defaultProfileClient.getMergedProfile();
+    const { bookmarks = [] } = profileData;
+    const targetBookmarkItem = bookmarks.find((bookmarkIdInfo) => `${bookmarkIdInfo}`.includes(id));
+    const newBookmarks = bookmarks.filter((bookmarkIdInfo) => !`${bookmarkIdInfo}`.includes(id));
+    if (targetBookmarkItem) {
+        element.dataset.bookmarked = false;
+        defaultProfileClient.updateProfile('bookmarks', newBookmarks, true);
+        sendNotice(toastText);
+        assetInteractionModel(id, 'Bookmark Removed');
+    }
+    else {
+        newBookmarks.push(`${id}:${Date.now()}`);
+        element.dataset.bookmarked = true;
+        defaultProfileClient.updateProfile('bookmarks', newBookmarks, true);
+        sendNotice(toastText);
+        assetInteractionModel(id, 'Bookmarked');
+    }    
 }
 
 async function isBookmarked(bookmarkId) {
     const profile = await defaultProfileClient.getMergedProfile();
-    return profile?.bookmarks.find((bookmarkIdInfo) => bookmarkIdInfo.includes(bookmarkId)) || false;
+    return profile?.bookmarks.some((bookmarkIdInfo) => `${bookmarkIdInfo}`.includes(bookmarkId));
 }
 
 export async function decorateBookmark(bookmarkButton, id) {
@@ -30,7 +46,7 @@ export async function decorateBookmark(bookmarkButton, id) {
         bookmarkButton.appendChild(bookmarkTooltip);
         bookmarkButton.appendChild(removeBookmarkTooltip);
 
-        bookmarkButton.dataset.bookmarked = isBookmarked(id);
+        bookmarkButton.dataset.bookmarked = await isBookmarked(id);
     }
     else {
         const signInToBookmarkTooltip = createPlaceholderSpan('Sign-in to bookmark', 'Sign-in to bookmark', (span) => {
