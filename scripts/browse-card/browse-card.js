@@ -283,7 +283,7 @@ const buildCardContent = async (card, model) => {
   ) {
     const cardAction = UserActions({
       container: cardOptions,
-      id: id || viewLink,
+      id: id || viewLink ? new URL(viewLink).pathname : '',
       link: copyLink
     });
     
