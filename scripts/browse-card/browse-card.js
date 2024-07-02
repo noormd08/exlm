@@ -460,9 +460,8 @@ export async function buildCard(container, element, model) {
   if (model.viewLink) {
     const cardContainer = document.createElement('a');
     cardContainer.setAttribute('href', model.viewLink);
-    const userActionsBtn = card.querySelector('.user-actions');
     cardContainer.addEventListener('click', (e) => {
-      const preventLinkRedirection = !!(e.target && userActionsBtn.contains(e.target));
+      const preventLinkRedirection = !!(e.target && e.target.closest('.user-actions'));
       if (preventLinkRedirection) {
         e.preventDefault();
       }
