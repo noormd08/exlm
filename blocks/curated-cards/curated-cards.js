@@ -116,7 +116,7 @@ export default async function decorate(block) {
 
   const browseCardsContent = BrowseCardsDelegate.fetchCardData(param);
   browseCardsContent
-    .then((data) => {
+    .then(async(data) => {
       buildCardsShimmer.remove();
       if (data?.length) {
         const contentDiv = document.createElement('div');
