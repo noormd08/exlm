@@ -30,8 +30,9 @@ button:disabled, button:disabled:hover {
 }
 
 .user-actions button .icon-bookmark-active {
-    height: 18px;
+    height: 20px;
     width: 18px;
+    margin: 0 1px;
 }
 
 .user-actions .action-tooltip {
