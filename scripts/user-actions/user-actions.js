@@ -37,7 +37,10 @@ const UserActions = (config) => {
         const actionDefinitions = [{
             name: 'bookmark',
             icons: ['bookmark', 'bookmark-active'],
-            onButtonReady: (element) => decorateBookmark(element, id),
+            onButtonReady: (element) => decorateBookmark({
+                element, 
+                id
+            }),
             onButtonClick: (element) => bookmarkHandler({
                 element,
                 id,

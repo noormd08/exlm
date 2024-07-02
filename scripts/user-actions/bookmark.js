@@ -3,6 +3,11 @@ import { createPlaceholderSpan } from '../scripts.js';
 import { sendNotice } from '../toast/toast.js';
 import { assetInteractionModel } from '../analytics/lib-analytics.js';
 
+async function isBookmarked(bookmarkId) {
+    const profile = await defaultProfileClient.getMergedProfile();
+    return profile?.bookmarks.some((bookmarkIdInfo) => `${bookmarkIdInfo}`.includes(bookmarkId));
+}
+
 export async function bookmarkHandler(config) {
     const { element, id, toastText } = config;
     const profileData = await defaultProfileClient.getMergedProfile();
@@ -24,16 +29,12 @@ export async function bookmarkHandler(config) {
     }    
 }
 
-async function isBookmarked(bookmarkId) {
-    const profile = await defaultProfileClient.getMergedProfile();
-    return profile?.bookmarks.some((bookmarkIdInfo) => `${bookmarkIdInfo}`.includes(bookmarkId));
-}
-
-export async function decorateBookmark(bookmarkButton, id) {
+export async function decorateBookmark(config) {
+    const { element, id } = config;
     const isSignedIn = await isSignedInUser();
 
     if (isSignedIn) {
-        bookmarkButton.dataset.signedIn = true;
+        element.dataset.signedIn = true;
 
         const bookmarkTooltip = createPlaceholderSpan('Bookmark Page', 'Bookmark Page', (span) => {
             span.classList.add('action-tooltip', 'bookmark-tooltip');
@@ -43,16 +44,16 @@ export async function decorateBookmark(bookmarkButton, id) {
             span.classList.add('action-tooltip', 'remove-bookmark-tooltip');
         });
 
-        bookmarkButton.appendChild(bookmarkTooltip);
-        bookmarkButton.appendChild(removeBookmarkTooltip);
+        element.appendChild(bookmarkTooltip);
+        element.appendChild(removeBookmarkTooltip);
 
-        bookmarkButton.dataset.bookmarked = await isBookmarked(id);
+        element.dataset.bookmarked = await isBookmarked(id);
     }
     else {
         const signInToBookmarkTooltip = createPlaceholderSpan('Sign-in to bookmark', 'Sign-in to bookmark', (span) => {
             span.classList.add('action-tooltip', 'signedin-tooltip');
         });
-        bookmarkButton.appendChild(signInToBookmarkTooltip);
-        bookmarkButton.disabled = true;
+        element.appendChild(signInToBookmarkTooltip);
+        element.disabled = true;
     }
 }
