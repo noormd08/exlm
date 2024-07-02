@@ -40,7 +40,6 @@ export async function bookmarkHandler(config) {
         sendNotice(placeholders?.removeBookmarkToastText);
         assetInteractionModel(id, 'Bookmark Removed');
     }
-    return true;
 }
 
 /**
