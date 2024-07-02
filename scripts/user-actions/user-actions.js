@@ -11,7 +11,6 @@ try {
   console.error('Error fetching placeholders:', err);
 }
 
-
 /**
  * UserActions component to handle user action buttons like bookmark and copy link.
  * 
@@ -71,8 +70,8 @@ const UserActions = (config) => {
      * Decorates the container with user action buttons.
      */
     const decorate = async () => {
-        await loadCSS('/scripts/user-actions/user-actions.css'); // Load CSS for user actions
-        const actions = htmlToElement(`<div class="user-actions"></div>`); // Create container for user actions
+        await loadCSS('/scripts/user-actions/user-actions.css');
+        const actions = htmlToElement(`<div class="user-actions"></div>`);
         const actionDefinitions = [{
             name: 'bookmark',
             icons: ['bookmark', 'bookmark-active'],
