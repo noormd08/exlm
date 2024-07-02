@@ -92,7 +92,7 @@ const UserActions = (config) => {
         });
 
         container.appendChild(actions);    
-        await decorateIcons(container, '', true); // Decorate icons within the container
+        await decorateIcons(container, ''); // Decorate icons within the container
     }
 
     return {
