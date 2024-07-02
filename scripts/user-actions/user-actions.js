@@ -79,9 +79,9 @@ const UserActions = (config) => {
                 element, 
                 id,
                 placeholders: {
-                    bookmarkPage: '',
-                    removeBookmark: '',
-                    signInToBookmark: ''
+                    bookmarkPage: placeholders?.bookmarkSet || '',
+                    removeBookmark: placeholders?.bookmarkUnset || '',
+                    signInToBookmark: placeholders?.bookmarkUnauthLabel || ''
                 }
             }),
             onButtonClick: (element) => bookmarkHandler({
