@@ -68,7 +68,7 @@ export async function decorateBookmark(config) {
         element.appendChild(bookmarkTooltip);
         element.appendChild(removeBookmarkTooltip);
 
-        element.dataset.bookmarked = await isBookmarked(id);
+        element.dataset.bookmarked = id ? await isBookmarked(id) : false;
     } else {
         const signInToBookmarkTooltip = createPlaceholderSpan(placeholders?.signInToBookmark, 'Sign-in to bookmark', (span) => {
             span.classList.add('action-tooltip', 'signedin-tooltip');

@@ -192,6 +192,7 @@ const buildCardContent = async (card, model) => {
     id,
     description,
     contentType: type,
+    viewLink,
     viewLinkText,
     copyLink,
     tags,
@@ -282,7 +283,7 @@ const buildCardContent = async (card, model) => {
   ) {
     const cardAction = UserActions({
       container: cardOptions,
-      id,
+      id: id || viewLink,
       link: copyLink
     });
     
