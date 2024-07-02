@@ -89,7 +89,7 @@ const UserActions = (config) => {
                 id,
                 placeholders: {
                     bookmarkToastText: placeholders?.bookmarkAuthLabelSet || '',
-                    removeBookmarkToastText: placeholders?.placeholders.bookmarkAuthLabelRemove || '',
+                    removeBookmarkToastText: placeholders?.bookmarkAuthLabelRemove || '',
                 }
             }),
         }, {
