@@ -1,23 +1,23 @@
 .user-actions {
-    display: flex;
     align-items: baseline;
+    display: flex;
 }
 
 .user-actions button {
-    position: relative;
-    padding: 0;
-    cursor: pointer;
-    box-sizing: content-box;
-    line-height: 1.75em;
-    font-weight: inherit;
+    align-items: center;
     background: none;
     border: none;
-    margin: 0;
     border-radius: 0;
+    box-sizing: content-box;
     color: inherit;
+    cursor: pointer;
     display: flex;
-    align-items: center;
+    font-weight: inherit;
+    line-height: 1.75em;
+    margin: 0;
     overflow: visible;
+    padding: 0;
+    position: relative;
 }
 
 button:disabled, button:disabled:hover {
@@ -31,16 +31,16 @@ button:disabled, button:disabled:hover {
 
 .user-actions button .icon-bookmark-active {
     height: 20px;
-    width: 18px;
     margin: 0 1px;
+    width: 18px;
 }
 
 .user-actions .action-tooltip {
-    display: none;
     background-color: var(--spectrum-gray-600);
     border-radius: 4px;
     bottom: 120%;
     color: var(--spectrum-gray-50);
+    display: none;
     font-size: 12px;
     font-weight: var(--font-weight-400);
     left: 50%;
@@ -49,9 +49,9 @@ button:disabled, button:disabled:hover {
     text-align: center;
     text-wrap: nowrap;
     transform: translateX(-50%);
+    transition: all 130ms ease-in-out;
     white-space: pre;
     z-index: 1;
-    transition: all 130ms ease-in-out;
 }
 
 .user-actions .action-tooltip::after {
