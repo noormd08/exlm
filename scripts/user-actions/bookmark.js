@@ -20,25 +20,25 @@ async function isBookmarked(bookmarkId) {
  * @param {Object} config - Configuration object.
  * @param {HTMLElement} config.element - The element representing the bookmark button.
  * @param {string} config.id - Unique identifier for the asset to be bookmarked.
- * @param {string} config.toastText - Text to be displayed in a toast notification.
+ * @param {string} config.placeholders - Placeholder object to be displayed in a toast notification.
  */
 export async function bookmarkHandler(config) {
-    const { element, id, toastText } = config;
+    const { element, id, placeholders } = config;
     const profileData = await defaultProfileClient.getMergedProfile();
     const { bookmarks = [] } = profileData;
     const targetBookmarkItem = bookmarks.find((bookmarkIdInfo) => `${bookmarkIdInfo}`.includes(id));
     const newBookmarks = bookmarks.filter((bookmarkIdInfo) => !`${bookmarkIdInfo}`.includes(id));
-    if (targetBookmarkItem) {
-        element.dataset.bookmarked = false;
-        defaultProfileClient.updateProfile('bookmarks', newBookmarks, true);
-        sendNotice(toastText);
-        assetInteractionModel(id, 'Bookmark Removed');
-    } else {
+    if (!targetBookmarkItem) {
         newBookmarks.push(`${id}:${Date.now()}`);
         element.dataset.bookmarked = true;
         defaultProfileClient.updateProfile('bookmarks', newBookmarks, true);
-        sendNotice(toastText);
+        sendNotice(placeholders?.bookmarkToastText);
         assetInteractionModel(id, 'Bookmarked');
+    } else {
+        element.dataset.bookmarked = false;
+        defaultProfileClient.updateProfile('bookmarks', newBookmarks, true);
+        sendNotice(placeholders?.removeBookmarkToastText);
+        assetInteractionModel(id, 'Bookmark Removed');
     }
 }
 
@@ -48,19 +48,20 @@ export async function bookmarkHandler(config) {
  * @param {Object} config - Configuration object.
  * @param {HTMLElement} config.element - The element representing the bookmark button.
  * @param {string} config.id - Unique identifier for the page/card to be bookmarked.
+ * @param {string} config.placeholders - Placeholders object.
  */
 export async function decorateBookmark(config) {
-    const { element, id } = config;
+    const { element, id, placeholders } = config;
     const isSignedIn = await isSignedInUser();
 
     if (isSignedIn) {
         element.dataset.signedIn = true;
 
-        const bookmarkTooltip = createPlaceholderSpan('Bookmark Page', 'Bookmark Page', (span) => {
+        const bookmarkTooltip = createPlaceholderSpan(placeholders?.bookmarkPage, 'Bookmark Page', (span) => {
             span.classList.add('action-tooltip', 'bookmark-tooltip');
         });
 
-        const removeBookmarkTooltip = createPlaceholderSpan('Remove Bookmark', 'Remove Bookmark', (span) => {
+        const removeBookmarkTooltip = createPlaceholderSpan(placeholders?.removeBookmark, 'Remove Bookmark', (span) => {
             span.classList.add('action-tooltip', 'remove-bookmark-tooltip');
         });
 
@@ -69,7 +70,7 @@ export async function decorateBookmark(config) {
 
         element.dataset.bookmarked = await isBookmarked(id);
     } else {
-        const signInToBookmarkTooltip = createPlaceholderSpan('Sign-in to bookmark', 'Sign-in to bookmark', (span) => {
+        const signInToBookmarkTooltip = createPlaceholderSpan(placeholders?.signInToBookmark, 'Sign-in to bookmark', (span) => {
             span.classList.add('action-tooltip', 'signedin-tooltip');
         });
         element.appendChild(signInToBookmarkTooltip);

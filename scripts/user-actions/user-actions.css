@@ -86,27 +86,3 @@ button:disabled, button:disabled:hover {
 .user-actions .bookmark[data-bookmarked="true"]:hover .remove-bookmark-tooltip {
     display: block;
 }
-
-/* .user-actions .bookmark[data-signed-in="false"] .icon-bookmark-active {
-    display: none;
-}
-
-.user-actions .bookmark[data-signed-in="true"][data-bookmarked="false"] .icon-bookmark {
-    display: block;
-}
-
-.user-actions .bookmark[data-signed-in="true"][data-bookmarked="true"] .icon-bookmark-active {
-    display: block;
-}
-
-.user-actions .bookmark[data-signed-in="false"]:hover .signedin-tooltip {
-    display: inline-block;
-}
-
-.user-actions .bookmark[data-signed-in="true"][data-bookmarked="false"]:hover .bookmark-tooltip {
-    display: inline-block;
-}
-
-.user-actions .bookmark[data-signed-in="true"][data-bookmarked="true"]:hover .remove-bookmark-tooltip {
-    display: inline-block;
-} */

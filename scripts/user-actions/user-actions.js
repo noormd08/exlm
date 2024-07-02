@@ -3,6 +3,15 @@ import { decorateIcons, loadCSS } from '../lib-franklin.js';
 import { decorateBookmark, bookmarkHandler } from './bookmark.js';
 import { copyHandler, decorateCopyLink } from './copy-link.js';
 
+let placeholders = {};
+try {
+  placeholders = await fetchLanguagePlaceholders();
+} catch (err) {
+  // eslint-disable-next-line no-console
+  console.error('Error fetching placeholders:', err);
+}
+
+
 /**
  * UserActions component to handle user action buttons like bookmark and copy link.
  * 
@@ -52,7 +61,7 @@ const UserActions = (config) => {
                     if (callback) {
                         callback();
                     }
-                }            
+                }
             });
         }
         return button;
@@ -69,12 +78,20 @@ const UserActions = (config) => {
             icons: ['bookmark', 'bookmark-active'],
             onButtonReady: (element) => decorateBookmark({
                 element, 
-                id
+                id,
+                placeholders: {
+                    bookmarkPage: '',
+                    removeBookmark: '',
+                    signInToBookmark: ''
+                }
             }),
             onButtonClick: (element) => bookmarkHandler({
                 element,
                 id,
-                toastText: 'Test'
+                placeholders: {
+                    bookmarkToastText: placeholders?.bookmarkAuthLabelSet || '',
+                    removeBookmarkToastText: placeholders?.placeholders.bookmarkAuthLabelRemove || '',
+                }
             }),
         }, {
             name: 'copy-link',
@@ -83,7 +100,7 @@ const UserActions = (config) => {
             onButtonClick: () => copyHandler({
                 id, 
                 link, 
-                toastText: 'Copied'
+                toastText: placeholders?.toastSet || 'Copy',
             }),
         }];
 
