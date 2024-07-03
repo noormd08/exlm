@@ -94,13 +94,6 @@
 .browse-cards-block-content > div:first-child .browse-card .user-actions .action-tooltip::after {
   left: 10%;
 }
-.browse-cards-block-content > div:first-child .browse-card .user-actions .bookmark + .copy-link .action-tooltip {
-  left: 50%;
-  transform: translateX(-50%);
-}
-.browse-cards-block-content > div:first-child .browse-card .user-actions .bookmark + .copy-link .action-tooltip::after {
-  left: 50%;
-}
 @media only screen and (min-width: 600px) {
     .browse-cards-block-title {
         max-width: unset;
