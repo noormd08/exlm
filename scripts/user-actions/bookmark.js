@@ -32,12 +32,12 @@ export async function bookmarkHandler(config) {
         newBookmarks.push(`${id}:${Date.now()}`);
         element.dataset.bookmarked = true;
         defaultProfileClient.updateProfile('bookmarks', newBookmarks, true);
-        sendNotice(placeholders?.bookmarkToastText);
+        sendNotice(tooltips?.bookmarkToastText);
         assetInteractionModel(id, 'Bookmarked');
     } else {
         element.dataset.bookmarked = false;
         defaultProfileClient.updateProfile('bookmarks', newBookmarks, true);
-        sendNotice(placeholders?.removeBookmarkToastText);
+        sendNotice(tooltips?.removeBookmarkToastText);
         assetInteractionModel(id, 'Bookmark Removed');
     }
 }
