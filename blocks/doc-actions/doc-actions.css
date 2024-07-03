@@ -108,7 +108,7 @@
   }
 
   .doc-actions .user-actions {
-    display: block;
+    display: flex;
   }
   
   .doc-actions .user-actions button {
