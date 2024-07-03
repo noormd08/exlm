@@ -29,16 +29,16 @@ export function copyToClipboard({ assetId = '', text, toastText }) {
  * @param {Object} config - Configuration object.
  * @param {string} config.id - Page Id
  * @param {string} config.link - The link to be copied.
- * @param {string} config.toastText - Text to be displayed in a toast notification.
+ * @param {string} config.tooltip - Tooltip to be displayed in a toast notification.
  */
 export function copyHandler(config) {
-    const { id, link, toastText } = config;
+    const { id, link, tooltip } = config;
     if (link) {
       const text = link.startsWith('/') ? `${window.location.origin}${link}` : link;
       copyToClipboard({
           assetId: id,
           text,
-          toastText
+          toastText: tooltip?.copyToastText
       });
     }    
 }
@@ -48,9 +48,10 @@ export function copyHandler(config) {
  * 
  * @param {HTMLElement} copyButton - The button element to be decorated.
  */
-export async function decorateCopyLink(copyButton) {
-  const tooltip = createPlaceholderSpan('Copy Link', 'Copy Link', (span) => {
+export async function decorateCopyLink(config) {
+  const { element, tooltip } = config;
+  const copyTooltip = createPlaceholderSpan(tooltip?.copyTooltip, 'Copy Link', (span) => {
     span.classList.add('action-tooltip');
   });
-  copyButton.appendChild(tooltip);
+  element.appendChild(copyTooltip);
 }

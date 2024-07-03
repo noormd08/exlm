@@ -1,4 +1,4 @@
-import { htmlToElement } from '../scripts.js';
+import { htmlToElement, fetchLanguagePlaceholders } from '../scripts.js';
 import { decorateIcons, loadCSS } from '../lib-franklin.js';
 import { decorateBookmark, bookmarkHandler } from './bookmark.js';
 import { copyHandler, decorateCopyLink } from './copy-link.js';
@@ -23,7 +23,7 @@ try {
  * @returns {Object} - Object with a decorate method to render user actions.
  */
 const UserActions = (config) => {
-    const { container, id, link, callback } = config;
+    const { container, id, link, bookmarkConfig, copyConfig, callback } = config;
 
     /**
      * Renders an icon as an HTML string.
@@ -46,9 +46,10 @@ const UserActions = (config) => {
      * 
      * @returns {HTMLElement} - The action button element.
      */
-    const addAction = ({ name, icons, onButtonReady, onButtonClick }) => {
+    const addAction = ({ name, icons, label, onButtonReady, onButtonClick }) => {
         const iconSpans = icons.map(renderIcon).join('');
-        const button = htmlToElement(`<button class="${name}">${iconSpans}</button>`);
+        const labelElement = label ? `<label>${label}</label>` : '';
+        const button = htmlToElement(`<button class="${name}">${iconSpans} ${labelElement}</button>`);        
         decorateIcons(button);
         if (onButtonReady) {
             onButtonReady(button);
@@ -75,10 +76,11 @@ const UserActions = (config) => {
         const actionDefinitions = [{
             name: 'bookmark',
             icons: ['bookmark', 'bookmark-active'],
+            label: bookmarkConfig?.label,
             onButtonReady: (element) => decorateBookmark({
                 element, 
                 id,
-                placeholders: {
+                tooltips: {
                     bookmarkTooltip: placeholders?.bookmarkAuthLabelSet || 'Bookmark page',
                     removeBookmarkTooltip: placeholders?.bookmarkAuthLabelRemove || 'Remove Bookmark',
                     signInToBookmarkTooltip: placeholders?.bookmarkUnauthLabel || 'Sign-in to bookmark'
@@ -87,19 +89,27 @@ const UserActions = (config) => {
             onButtonClick: (element) => bookmarkHandler({
                 element,
                 id,
-                placeholders: {
+                tooltips: {
                     bookmarkToastText: placeholders?.bookmarkAuthLabelSet || 'Success! This is bookmarked to your profile.',
                     removeBookmarkToastText: placeholders?.bookmarkAuthLabelRemove || 'Success! This is no longer bookmarked to your profile.',
                 }
             }),
         }, {
             name: 'copy-link',
-            icons: ['copy'],
-            onButtonReady: (element) => decorateCopyLink(element),
+            icons: copyConfig?.icons || ['copy'],
+            label: copyConfig?.label,
+            onButtonReady: (element) => decorateCopyLink({
+                element,
+                tooltip: {
+                    copyTooltip: 'Copy Link'
+                }
+            }),
             onButtonClick: () => copyHandler({
                 id, 
-                link, 
-                toastText: placeholders?.toastSet || 'Copy',
+                link,
+                tooltip: {
+                    copyToastText: placeholders?.toastSet || 'Copy',
+                }                
             }),
         }];
 

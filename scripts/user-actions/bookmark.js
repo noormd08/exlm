@@ -20,10 +20,10 @@ async function isBookmarked(bookmarkId) {
  * @param {Object} config - Configuration object.
  * @param {HTMLElement} config.element - The element representing the bookmark button.
  * @param {string} config.id - Unique identifier for the asset to be bookmarked.
- * @param {string} config.placeholders - Placeholder object to be displayed in a toast notification.
+ * @param {string} config.tooltips - tooltips object to be displayed in a toast notification.
  */
 export async function bookmarkHandler(config) {
-    const { element, id, placeholders } = config;
+    const { element, id, tooltips } = config;
     const profileData = await defaultProfileClient.getMergedProfile();
     const { bookmarks = [] } = profileData;
     const targetBookmarkItem = bookmarks.find((bookmarkIdInfo) => `${bookmarkIdInfo}`.includes(id));
@@ -48,20 +48,20 @@ export async function bookmarkHandler(config) {
  * @param {Object} config - Configuration object.
  * @param {HTMLElement} config.element - The element representing the bookmark button.
  * @param {string} config.id - Unique identifier for the page/card to be bookmarked.
- * @param {string} config.placeholders - Placeholders object.
+ * @param {string} config.tooltips - tooltips object.
  */
 export async function decorateBookmark(config) {
-    const { element, id, placeholders } = config;
+    const { element, id, tooltips } = config;
     const isSignedIn = await isSignedInUser();
 
     if (isSignedIn) {
         element.dataset.signedIn = true;
 
-        const bookmarkTooltip = createPlaceholderSpan(placeholders?.bookmarkTooltip, 'Bookmark Page', (span) => {
+        const bookmarkTooltip = createPlaceholderSpan(tooltips?.bookmarkTooltip, 'Bookmark Page', (span) => {
             span.classList.add('action-tooltip', 'bookmark-tooltip');
         });
 
-        const removeBookmarkTooltip = createPlaceholderSpan(placeholders?.removeBookmarkTooltip, 'Remove Bookmark', (span) => {
+        const removeBookmarkTooltip = createPlaceholderSpan(tooltips?.removeBookmarkTooltip, 'Remove Bookmark', (span) => {
             span.classList.add('action-tooltip', 'remove-bookmark-tooltip');
         });
 
@@ -70,7 +70,7 @@ export async function decorateBookmark(config) {
 
         element.dataset.bookmarked = id ? await isBookmarked(id) : false;
     } else {
-        const signInToBookmarkTooltip = createPlaceholderSpan(placeholders?.signInToBookmarkTooltip, 'Sign-in to bookmark', (span) => {
+        const signInToBookmarkTooltip = createPlaceholderSpan(tooltips?.signInToBookmarkTooltip, 'Sign-in to bookmark', (span) => {
             span.classList.add('action-tooltip', 'signedin-tooltip');
         });
         element.appendChild(signInToBookmarkTooltip);

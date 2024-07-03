@@ -6,11 +6,8 @@ import {
   fetchLanguagePlaceholders,
   fetchAuthorBio,
 } from '../../scripts/scripts.js';
-import { tooltipTemplate } from '../../scripts/toast/toast.js';
-import { defaultProfileClient, isSignedInUser } from '../../scripts/auth/profile.js';
 import { createOptimizedPicture, decorateIcons, getMetadata } from '../../scripts/lib-franklin.js';
 import ffetch from '../../scripts/ffetch.js';
-import loadJWT from '../../scripts/auth/jwt.js';
 import UserActions from '../../scripts/user-actions/user-actions.js';
 
 const metadataProperties = {
@@ -48,53 +45,9 @@ try {
   console.error('Error fetching placeholders:', err);
 }
 
-// function getCurrentPath() {
-//   return window.location.pathname;
-// }
-
-// export async function decorateBookmark(block) {
-//   const bookmarkId = document.querySelector('meta[name="id"]')?.content || getCurrentPath();
-//   const unAuthBookmark = document.createElement('div');
-//   unAuthBookmark.className = 'bookmark';
-//   unAuthBookmark.innerHTML = tooltipTemplate('bookmark-icon', 'Bookmark page', placeholders.bookmarkUnauthLabel);
-
-//   const authBookmark = document.createElement('div');
-//   authBookmark.className = 'bookmark auth';
-//   authBookmark.innerHTML = tooltipTemplate('bookmark-icon', 'Bookmark page', placeholders.bookmarkAuthLabelSet);
-
-//   const isSignedIn = await isSignedInUser();
-//   if (isSignedIn) {
-//     block.appendChild(authBookmark);
-//     const bookmarkAuthedToolTipLabel = authBookmark.querySelector('.exl-tooltip-label');
-//     const bookmarkAuthedToolTipIcon = authBookmark.querySelector('.bookmark-icon');
-//     loadJWT().then(async () => {
-//       defaultProfileClient.getMergedProfile().then(async (data) => {
-//         if (data?.bookmarks?.find((bookmark) => bookmark.includes(bookmarkId))) {
-//           bookmarkAuthedToolTipIcon.classList.add('authed');
-//           bookmarkAuthedToolTipLabel.innerHTML = placeholders.bookmarkAuthLabelRemove;
-//         }
-//       });
-
-//       renderBookmark(bookmarkAuthedToolTipLabel, bookmarkAuthedToolTipIcon, bookmarkId);
-//     });
-//   } else {
-//     block.appendChild(unAuthBookmark);
-//   }
-// }
-
-// async function decorateCopyLink(block) {
-//   const copyLinkDivNode = document.createElement('div');
-//   copyLinkDivNode.className = 'copy-link';
-//   copyLinkDivNode.innerHTML = tooltipTemplate('copy-icon', 'Copy page url', placeholders.toastTiptext);
-
-//   block.appendChild(copyLinkDivNode);
-//   attachCopyLink(copyLinkDivNode, window.location.href, placeholders.toastSet);
-// }
-
 async function createOptions(container, readTimeText) {
   const options = document.createElement('div');
   options.classList.add('article-marquee-options');
-  // await decorateBookmarkAndCopy(options, placeholders);
   const cardAction = UserActions({
     container: options,
     id: window.location.pathname,
