@@ -29,6 +29,11 @@ button:disabled, button:disabled:hover {
     width: 20px;
 }
 
+.user-actions button:hover {
+    background-color: var(--spectrum-gray-200);
+    border-radius: 4px;
+}
+
 .user-actions button .icon-bookmark-active {
     height: 20px;
     margin: 0 1px;
