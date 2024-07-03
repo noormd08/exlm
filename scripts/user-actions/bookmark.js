@@ -57,11 +57,11 @@ export async function decorateBookmark(config) {
     if (isSignedIn) {
         element.dataset.signedIn = true;
 
-        const bookmarkTooltip = createPlaceholderSpan(placeholders?.bookmarkPage, 'Bookmark Page', (span) => {
+        const bookmarkTooltip = createPlaceholderSpan(placeholders?.bookmarkTooltip, 'Bookmark Page', (span) => {
             span.classList.add('action-tooltip', 'bookmark-tooltip');
         });
 
-        const removeBookmarkTooltip = createPlaceholderSpan(placeholders?.removeBookmark, 'Remove Bookmark', (span) => {
+        const removeBookmarkTooltip = createPlaceholderSpan(placeholders?.removeBookmarkTooltip, 'Remove Bookmark', (span) => {
             span.classList.add('action-tooltip', 'remove-bookmark-tooltip');
         });
 
@@ -70,7 +70,7 @@ export async function decorateBookmark(config) {
 
         element.dataset.bookmarked = id ? await isBookmarked(id) : false;
     } else {
-        const signInToBookmarkTooltip = createPlaceholderSpan(placeholders?.signInToBookmark, 'Sign-in to bookmark', (span) => {
+        const signInToBookmarkTooltip = createPlaceholderSpan(placeholders?.signInToBookmarkTooltip, 'Sign-in to bookmark', (span) => {
             span.classList.add('action-tooltip', 'signedin-tooltip');
         });
         element.appendChild(signInToBookmarkTooltip);

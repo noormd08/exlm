@@ -79,17 +79,17 @@ const UserActions = (config) => {
                 element, 
                 id,
                 placeholders: {
-                    bookmarkPage: placeholders?.bookmarkSet || '',
-                    removeBookmark: placeholders?.bookmarkUnset || '',
-                    signInToBookmark: placeholders?.bookmarkUnauthLabel || ''
+                    bookmarkTooltip: placeholders?.bookmarkAuthLabelSet || 'Bookmark page',
+                    removeBookmarkTooltip: placeholders?.bookmarkAuthLabelRemove || 'Remove Bookmark',
+                    signInToBookmarkTooltip: placeholders?.bookmarkUnauthLabel || 'Sign-in to bookmark'
                 }
             }),
             onButtonClick: (element) => bookmarkHandler({
                 element,
                 id,
                 placeholders: {
-                    bookmarkToastText: placeholders?.bookmarkAuthLabelSet || '',
-                    removeBookmarkToastText: placeholders?.bookmarkAuthLabelRemove || '',
+                    bookmarkToastText: placeholders?.bookmarkAuthLabelSet || 'Success! This is bookmarked to your profile.',
+                    removeBookmarkToastText: placeholders?.bookmarkAuthLabelRemove || 'Success! This is no longer bookmarked to your profile.',
                 }
             }),
         }, {
