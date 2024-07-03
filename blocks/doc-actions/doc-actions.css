@@ -94,8 +94,7 @@
   margin-right: 10px;
 }
 
-.doc-actions .bookmark, 
-.doc-actions .copy-link {
+.doc-actions .user-actions {
   display: none;
 }
 
@@ -108,8 +107,15 @@
     z-index: 5;
   }
 
-  .doc-actions .bookmark,
-  .doc-actions .copy-link {
+  .doc-actions .user-actions {
     display: block;
-  }  
+  }
+  
+  .doc-actions .user-actions button {
+    margin-right: 10px;
+  }
+
+  .doc-actions .user-actions button:last-child {
+    margin-right: 0;
+  }
 }
