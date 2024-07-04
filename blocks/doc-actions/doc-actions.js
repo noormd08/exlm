@@ -111,20 +111,19 @@ export default async function decorate(block) {
     fetchLanguagePlaceholders().then((placeholders) => {
       decorateLanguageToggle(block, placeholders);
       const docActionMobileElement = document.querySelector('.doc-actions-mobile');
-      [block, docActionMobileElement].forEach(container => {
+      [block, docActionMobileElement].forEach((container) => {
         const userActions = UserActions({
-            container,
-            id: ((document.querySelector('meta[name="id"]') || {}).content || '').trim(),
-            link: window.location.href,
-            bookmarkConfig: {
-              label: placeholders?.userActionBookmarkLabel || 'Bookmark'
-            },
-            copyConfig: {
-              label: placeholders?.userActionCopylinkLabel || 'Copy link',
-              icons: ['copy-link']
-            }
-          }
-        );
+          container,
+          id: ((document.querySelector('meta[name="id"]') || {}).content || '').trim(),
+          link: window.location.href,
+          bookmarkConfig: {
+            label: placeholders?.userActionBookmarkLabel || 'Bookmark',
+          },
+          copyConfig: {
+            label: placeholders?.userActionCopylinkLabel || 'Copy link',
+            icons: ['copy-link'],
+          },
+        });
         userActions.decorate();
       });
     });

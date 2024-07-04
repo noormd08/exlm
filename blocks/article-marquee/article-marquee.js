@@ -51,9 +51,9 @@ async function createOptions(container, readTimeText) {
   const cardAction = UserActions({
     container: options,
     id: window.location.pathname,
-    link: window.location.href
+    link: window.location.href,
   });
-  
+
   cardAction.decorate();
 
   const lastUpdated = document.createElement('div');

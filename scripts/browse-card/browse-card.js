@@ -3,7 +3,7 @@ import { createTag, htmlToElement, fetchLanguagePlaceholders, getPathDetails } f
 import { createTooltip } from './browse-card-tooltip.js';
 import { CONTENT_TYPES, RECOMMENDED_COURSES_CONSTANTS, AUTHOR_TYPE } from './browse-cards-constants.js';
 import { sendCoveoClickEvent } from '../coveo-analytics.js';
-import UserActions from '../user-actions/user-actions.js'; 
+import UserActions from '../user-actions/user-actions.js';
 
 loadCSS(`${window.hlx.codeBasePath}/scripts/browse-card/browse-card.css`);
 
@@ -270,7 +270,7 @@ const buildCardContent = async (card, model) => {
   }
 
   const cardOptions = document.createElement('div');
-  cardOptions.classList.add('browse-card-options');  
+  cardOptions.classList.add('browse-card-options');
 
   if (
     contentType !== CONTENT_TYPES.LIVE_EVENT.MAPPING_KEY &&
@@ -280,9 +280,9 @@ const buildCardContent = async (card, model) => {
     const cardAction = UserActions({
       container: cardOptions,
       id: id || viewLink ? new URL(viewLink).pathname : '',
-      link: copyLink
+      link: copyLink,
     });
-    
+
     cardAction.decorate();
   }
   cardFooter.appendChild(cardOptions);

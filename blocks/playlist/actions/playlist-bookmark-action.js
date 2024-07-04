@@ -42,10 +42,14 @@ export async function decorateBookmark(bookmarkButton) {
   bookmarkButton.dataset.bookmarked = false;
 
   if (!isSignedIn) {
-    const signInToBookmarkTooltip = createPlaceholderSpan('userActionSigninBookmarkTooltip', 'Sign-in to bookmark', (span) => {
-      span.dataset.signedIn = 'false';
-      span.classList.add('playlist-action-tooltip-label');
-    });
+    const signInToBookmarkTooltip = createPlaceholderSpan(
+      'userActionSigninBookmarkTooltip',
+      'Sign-in to bookmark',
+      (span) => {
+        span.dataset.signedIn = 'false';
+        span.classList.add('playlist-action-tooltip-label');
+      },
+    );
 
     bookmarkButton.appendChild(signInToBookmarkTooltip);
     bookmarkButton.disabled = true;
