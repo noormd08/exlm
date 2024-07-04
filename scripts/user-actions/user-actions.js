@@ -3,6 +3,8 @@ import { decorateIcons, loadCSS } from '../lib-franklin.js';
 import { decorateBookmark, bookmarkHandler } from './bookmark.js';
 import { copyHandler, decorateCopyLink } from './copy-link.js';
 
+await loadCSS('/scripts/user-actions/user-actions.css');
+
 let placeholders = {};
 try {
   placeholders = await fetchLanguagePlaceholders();
@@ -10,8 +12,6 @@ try {
   // eslint-disable-next-line no-console
   console.error('Error fetching placeholders:', err);
 }
-
-await loadCSS('/scripts/user-actions/user-actions.css');
 
 /**
  * UserActions component to handle user action buttons like bookmark and copy link.
