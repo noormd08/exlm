@@ -10,7 +10,6 @@
     border-radius: 0;
     box-sizing: content-box;
     color: inherit;
-    cursor: pointer;
     display: flex;
     flex-wrap: wrap;
     font-weight: inherit;
@@ -19,6 +18,12 @@
     overflow: visible;
     padding: 0;
     position: relative;
+}
+
+.user-actions button:hover,
+.user-actions button:focus {
+    background-color: none;
+    cursor: pointer;
 }
 
 button:disabled, button:disabled:hover {
