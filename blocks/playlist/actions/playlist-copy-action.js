@@ -12,7 +12,7 @@ try {
 export default function copy() {
   copyToClipboard({
     text: window.location.href,
-    toastText: placeholders.toastSet,
+    toastText: placeholders.userActionCopylinkToastText,
   });
   return true;
 }
