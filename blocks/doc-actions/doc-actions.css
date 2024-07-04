@@ -94,9 +94,19 @@
   margin-right: 10px;
 }
 
-.doc-actions .user-actions {
+
+.doc-actions .doc-actions-mobile {
   display: none;
 }
+
+.doc-actions .user-actions button {
+  margin-right: 10px;
+}
+
+.doc-actions .user-actions button:last-child {
+  margin-right: 0;
+}
+
 
 @media (width >= 900px) {
   .doc-actions-wrapper {
@@ -107,15 +117,7 @@
     z-index: 5;
   }
 
-  .doc-actions .user-actions {
-    display: flex;
-  }
-  
-  .doc-actions .user-actions button {
-    margin-right: 10px;
-  }
-
-  .doc-actions .user-actions button:last-child {
-    margin-right: 0;
+  .doc-actions .doc-actions-mobile {
+    display: block;
   }
 }
