@@ -18,6 +18,8 @@ try {
  * @param {HTMLElement} config.container - The container element to which user actions will be appended.
  * @param {string} config.id - Page id.
  * @param {string} config.link - The link to be copied.
+ * @param {Object} config.bookmarkConfig - Bookmark configuration for label and icons.
+ * @param {Object} config.copyConfig - Copy configuration for label and icons.
  * @param {Function} config.callback - Callback function to be called on button click.
  * 
  * @returns {Object} - Object with a decorate method to render user actions.
@@ -41,6 +43,7 @@ const UserActions = (config) => {
      * @param {Object} param - Action parameters.
      * @param {string} param.name - Action name.
      * @param {Array<string>} param.icons - List of icon names.
+     * @param {Array<string>} param.label - Display label.
      * @param {Function} param.onButtonReady - Callback function called when button is ready.
      * @param {Function} param.onButtonClick - Callback function called when button is clicked.
      * 
@@ -81,17 +84,17 @@ const UserActions = (config) => {
                 element, 
                 id,
                 tooltips: {
-                    bookmarkTooltip: placeholders?.bookmarkAuthLabelSet || 'Bookmark page',
-                    removeBookmarkTooltip: placeholders?.bookmarkAuthLabelRemove || 'Remove Bookmark',
-                    signInToBookmarkTooltip: placeholders?.bookmarkUnauthLabel || 'Sign-in to bookmark'
+                    bookmarkTooltip: placeholders?.userActionBookmarkTooltip || 'Bookmark page',
+                    removeBookmarkTooltip: placeholders?.userActionRemoveBookmarkTooltip || 'Remove Bookmark',
+                    signInToBookmarkTooltip: placeholders?.userActionSigninBookmarkTooltip || 'Sign-in to bookmark'
                 }
             }),
             onButtonClick: (element) => bookmarkHandler({
                 element,
                 id,
                 tooltips: {
-                    bookmarkToastText: placeholders?.bookmarkAuthLabelSet || 'Success! This is bookmarked to your profile.',
-                    removeBookmarkToastText: placeholders?.bookmarkAuthLabelRemove || 'Success! This is no longer bookmarked to your profile.',
+                    bookmarkToastText: placeholders?.userActionBookmarkToastText || 'Success! This is bookmarked to your profile.',
+                    removeBookmarkToastText: placeholders?.userActionRemoveBookmarkToastText || 'Success! This is no longer bookmarked to your profile.',
                 }
             }),
         }, {
@@ -101,14 +104,14 @@ const UserActions = (config) => {
             onButtonReady: (element) => decorateCopyLink({
                 element,
                 tooltip: {
-                    copyTooltip: 'Copy Link'
+                    copyTooltip: placeholders?.userActionCopylinkTooltip || 'Copy link URL'
                 }
             }),
             onButtonClick: () => copyHandler({
                 id, 
                 link,
                 tooltip: {
-                    copyToastText: placeholders?.toastSet || 'Copy',
+                    copyToastText: placeholders?.userActionCopylinkToastText || 'URL copied',
                 }                
             }),
         }];

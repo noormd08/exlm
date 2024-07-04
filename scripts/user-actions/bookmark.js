@@ -4,7 +4,7 @@ import { sendNotice } from '../toast/toast.js';
 import { assetInteractionModel } from '../analytics/lib-analytics.js';
 
 /**
- * Checks if a given bookmark ID is present in the user's bookmarks.
+ * Checks if a given bookmark ID is present in the user's bookmark list.
  * 
  * @param {string} bookmarkId - The bookmark ID to check.
  * @returns {Promise<boolean>} - Returns true if the bookmark exists, otherwise false.
@@ -48,7 +48,7 @@ export async function bookmarkHandler(config) {
  * @param {Object} config - Configuration object.
  * @param {HTMLElement} config.element - The element representing the bookmark button.
  * @param {string} config.id - Unique identifier for the page/card to be bookmarked.
- * @param {string} config.tooltips - tooltips object.
+ * @param {string} config.tooltips - Object for creating the tooltips.
  */
 export async function decorateBookmark(config) {
     const { element, id, tooltips } = config;

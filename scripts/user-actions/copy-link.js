@@ -44,9 +44,12 @@ export function copyHandler(config) {
 }
 
 /**
- * Decorates a copy link button with a tooltip.
- * 
- * @param {HTMLElement} copyButton - The button element to be decorated.
+ * Adds a tooltip to a given element to indicate a "Copy Link" action.
+ *
+ * @param {Object} config - The configuration object for the decoration.
+ * @param {HTMLElement} config.element - The DOM element to which the tooltip will be appended.
+ * @param {Object} config.tooltip - Optional tooltip configuration.
+ * @param {string} config.tooltip.copyTooltip - Optional custom text for the copy tooltip. Defaults to 'Copy Link'.
  */
 export async function decorateCopyLink(config) {
   const { element, tooltip } = config;

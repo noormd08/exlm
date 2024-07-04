@@ -110,17 +110,17 @@ export default async function decorate(block) {
   if (isDocPage) {
     fetchLanguagePlaceholders().then((placeholders) => {
       decorateLanguageToggle(block, placeholders);
-
-      [block, document.querySelector('.doc-actions-mobile')].forEach(container => {
+      const docActionMobileElement = document.querySelector('.doc-actions-mobile');
+      [block, docActionMobileElement].forEach(container => {
         const userActions = UserActions({
             container,
             id: ((document.querySelector('meta[name="id"]') || {}).content || '').trim(),
             link: window.location.href,
             bookmarkConfig: {
-              label: 'Bookmark'
+              label: placeholders?.userActionBookmarkLabel || 'Bookmark'
             },
             copyConfig: {
-              label: 'Copy link',
+              label: placeholders?.userActionCopylinkLabel || 'Copy link',
               icons: ['copy-link']
             }
           }
