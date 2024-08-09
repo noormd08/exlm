@@ -1,11 +1,21 @@
 import { decorateIcons, loadCSS } from '../lib-franklin.js';
-import { createTag, htmlToElement, fetchLanguagePlaceholders, getPathDetails } from '../scripts.js';
+import { createTag, htmlToElement, fetchLanguagePlaceholders, getPathDetails, getConfig } from '../scripts.js';
 import { createTooltip } from './browse-card-tooltip.js';
-import { CONTENT_TYPES, RECOMMENDED_COURSES_CONSTANTS, AUTHOR_TYPE } from './browse-cards-constants.js';
+import { AUTHOR_TYPE, RECOMMENDED_COURSES_CONSTANTS } from './browse-cards-constants.js';
 import { sendCoveoClickEvent } from '../coveo-analytics.js';
 import UserActions from '../user-actions/user-actions.js';
+import { CONTENT_TYPES } from '../data-service/coveo/coveo-exl-pipeline-constants.js';
 
 loadCSS(`${window.hlx.codeBasePath}/scripts/browse-card/browse-card.css`);
+
+const { isProd } = getConfig();
+
+const bookmarkExclusionContentypes = [
+  CONTENT_TYPES.LIVE_EVENT.MAPPING_KEY,
+  CONTENT_TYPES.COMMUNITY.MAPPING_KEY,
+  CONTENT_TYPES.INSTRUCTOR_LED.MAPPING_KEY,
+  ...(isProd ? [CONTENT_TYPES.PERSPECTIVE.MAPPING_KEY] : []),
+];
 
 /* Fetch data from the Placeholder.json */
 let placeholders = {};
@@ -196,6 +206,7 @@ const buildCardContent = async (card, model) => {
     event,
     inProgressText,
     inProgressStatus = {},
+    failedToLoad = false,
   } = model;
   const contentType = type?.toLowerCase();
   const cardContent = card.querySelector('.browse-card-content');
@@ -242,7 +253,7 @@ const buildCardContent = async (card, model) => {
     buildEventContent({ event, cardContent, card });
   }
 
-  if (contentType === CONTENT_TYPES.ARTICLE.MAPPING_KEY) {
+  if (contentType === CONTENT_TYPES.PERSPECTIVE.MAPPING_KEY) {
     const authorElement = createTag('div', { class: 'browse-card-author-info' });
 
     if (authorInfo?.name) {
@@ -251,14 +262,14 @@ const buildCardContent = async (card, model) => {
         { class: 'browse-card-author-prefix' },
         placeholders?.articleAuthorPrefixLabel,
       );
-      const authorName = createTag('span', { class: 'browse-card-author-name' }, authorInfo?.name);
+      const authorName = createTag('span', { class: 'browse-card-author-name' }, authorInfo?.name.join(', '));
       authorElement.append(authorPrefix, authorName);
     }
 
     let authorBadge = '';
-    if (authorInfo?.type === AUTHOR_TYPE.ADOBE) {
+    if (authorInfo?.type[0] === AUTHOR_TYPE.ADOBE) {
       authorBadge = createTag('span', { class: 'browse-card-author-badge' }, placeholders?.articleAdobeTag);
-    } else if (authorInfo?.type === AUTHOR_TYPE.EXTERNAL) {
+    } else if (authorInfo?.type[0] === AUTHOR_TYPE.EXTERNAL) {
       authorBadge = createTag('span', { class: 'browse-card-author-badge' }, placeholders?.articleExternalTag);
       authorBadge.classList.add('author-badge-external');
     }
@@ -272,19 +283,16 @@ const buildCardContent = async (card, model) => {
   const cardOptions = document.createElement('div');
   cardOptions.classList.add('browse-card-options');
 
-  if (
-    contentType !== CONTENT_TYPES.LIVE_EVENT.MAPPING_KEY &&
-    contentType !== CONTENT_TYPES.COMMUNITY.MAPPING_KEY &&
-    contentType !== CONTENT_TYPES.INSTRUCTOR_LED.MAPPING_KEY
-  ) {
-    const cardAction = UserActions({
-      container: cardOptions,
-      id: id || viewLink ? new URL(viewLink).pathname : '',
-      link: copyLink,
-    });
+  const cardAction = UserActions({
+    container: cardOptions,
+    id: id || (viewLink ? new URL(viewLink).pathname : ''),
+    link: copyLink,
+    bookmarkConfig: !bookmarkExclusionContentypes.includes(contentType),
+    copyConfig: failedToLoad ? false : undefined,
+  });
 
-    cardAction.decorate();
-  }
+  cardAction.decorate();
+
   cardFooter.appendChild(cardOptions);
   buildCardCtaContent({ cardFooter, contentType, viewLinkText });
 };
@@ -306,7 +314,7 @@ const buildCardContent = async (card, model) => {
  * @param {*} model
  */
 export async function buildCard(container, element, model) {
-  const { thumbnail, product, title, contentType, badgeTitle, inProgressStatus } = model;
+  const { thumbnail, product, title, contentType, badgeTitle, inProgressStatus, failedToLoad = false } = model;
   // lowercase all urls - because all of our urls are lower-case
   model.viewLink = model.viewLink?.toLowerCase();
   model.copyLink = model.copyLink?.toLowerCase();
@@ -327,7 +335,7 @@ export async function buildCard(container, element, model) {
   }
   const card = createTag(
     'div',
-    { class: `browse-card ${type}-card` },
+    { class: `browse-card ${type}-card ${failedToLoad ? 'load-fail-card' : ''}` },
     `<div class="browse-card-figure"></div><div class="browse-card-content"></div><div class="browse-card-footer"></div>`,
   );
   const cardFigure = card.querySelector('.browse-card-figure');
@@ -355,7 +363,7 @@ export async function buildCard(container, element, model) {
     });
   }
 
-  if (badgeTitle) {
+  if (badgeTitle || failedToLoad) {
     const bannerElement = createTag('h3', { class: 'browse-card-banner' });
     bannerElement.innerText = badgeTitle || '';
     cardFigure.appendChild(bannerElement);
@@ -365,9 +373,9 @@ export async function buildCard(container, element, model) {
     buildInProgressBarContent({ inProgressStatus, cardFigure, card });
   }
 
-  if (product) {
+  if (product || failedToLoad) {
     let tagElement;
-    if (product.length > 1) {
+    if (product?.length > 1) {
       tagElement = createTag(
         'div',
         { class: 'browse-card-tag-text' },
@@ -382,7 +390,8 @@ export async function buildCard(container, element, model) {
       };
       createTooltip(container, tooltipElem, tooltipConfig);
     } else {
-      tagElement = createTag('div', { class: 'browse-card-tag-text' }, `<h4>${product.join(', ')}</h4>`);
+      const tagText = product ? product.join(', ') : '';
+      tagElement = createTag('div', { class: 'browse-card-tag-text' }, `<h4>${tagText}</h4>`);
       cardContent.appendChild(tagElement);
     }
   }

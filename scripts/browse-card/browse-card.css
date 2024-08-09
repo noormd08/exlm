@@ -79,6 +79,23 @@
   overflow: hidden;
   position: relative;
 }
+
+.load-fail-card.browse-card .browse-card-banner {
+  height: 32px;
+  width: 132px;
+  background-image: linear-gradient(90deg, var(--shimmer-image-slide-start) 0px, var(--shimmer-image-slide-end) 40px, var(--shimmer-image-slide-start) 80px);
+  background-size: 200% 100%;
+  animation: placeholder-wave 1.5s infinite;
+}
+
+.load-fail-card.browse-card .browse-card-tag-text {
+  height: 21px;
+  width: 100px;
+  margin-bottom: 16px;
+  background-image: linear-gradient(90deg, var(--shimmer-image-slide-start) 0px, var(--shimmer-image-slide-end) 40px, var(--shimmer-image-slide-start) 80px);
+  background-size: 200% 100%;
+  animation: placeholder-wave 1.5s infinite;
+}
 .browse-card .browse-card-figure.img-custom-height {
   min-height: 153px;
 }
@@ -170,13 +187,6 @@
   width: 22px;
   fill: var(--non-spectrum-navy-blue);
 }
-/* .browse-card .browse-card-footer .icon {
-  color: var( --non-spectrum-dim-gray);
-  fill: var( --non-spectrum-dim-gray);
-  margin-right: 2px;
-  height: 24px;
-  width: 24px;
-} */
 .browse-card .browse-card-meta-anchor {
   margin: 0;
   display: flex;
@@ -246,7 +256,7 @@
 .browse-card.documentation-card .browse-card-banner {
   background-color: var(--spectrum-celery-900);
 }
-.browse-card.article-card .browse-card-banner {
+.browse-card.perspective-card .browse-card-banner {
   background-color: var(--spectrum-gray-600);
 }
 .browse-card.troubleshooting-card .browse-card-banner {
@@ -280,7 +290,7 @@
 .browse-card.tutorial-card .browse-card-figure {
   max-height: 140px;
 }
-.browse-card.article-card .browse-card-figure,
+.browse-card.perspective-card .browse-card-figure,
 .browse-card.troubleshooting-card .browse-card-figure,
 .browse-card.certificate-card .browse-card-figure,
 .browse-card.certification-card .browse-card-figure,
