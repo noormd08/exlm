@@ -1,4 +1,3 @@
-import TabbedCardList from '../../scripts/tabbed-card-list/tabbed-card-list.js';
 import {
   createTag,
   fetchLanguagePlaceholders,
@@ -16,8 +15,8 @@ import {
   removeProductDuplicates,
 } from '../../scripts/browse-card/browse-card-utils.js';
 import { defaultProfileClient } from '../../scripts/auth/profile.js';
-import Dropdown, { DROPDOWN_VARIANTS } from '../../scripts/dropdown/dropdown.js';
 import BuildPlaceholder from '../../scripts/browse-card/browse-card-placeholder.js';
+import ResponsiveList from '../../scripts/responsive-list/responsive-list.js';
 
 let placeholders = {};
 try {
@@ -191,18 +190,18 @@ export default async function decorate(block) {
   filterOptions.unshift(defaultOptionsKey);
   const [defaultFilterOption = ''] = filterOptions;
 
-  const renderDropdown = isDesktop ? filterOptions?.length > 4 : true;
+  const renderDropdown = isDesktop ? filterOptions?.length > 100 : true;
   const numberOfResults = contentTypeIsEmpty ? 4 : 1;
 
   const buildCardsShimmer = new BuildPlaceholder(contentTypeIsEmpty ? numberOfResults : contentTypes.length);
 
   const fetchDataAndRenderBlock = async (optionType) => {
     const contentDiv = block.querySelector('.recommended-content-block-section');
-    const currentActiveOption = contentDiv.dataset.selected;
+    // const currentActiveOption = contentDiv.dataset.selected;
     const lowercaseOptionType = optionType?.toLowerCase();
-    if (currentActiveOption && lowercaseOptionType === currentActiveOption.toLowerCase()) {
-      return;
-    }
+    // if (currentActiveOption && lowercaseOptionType === currentActiveOption.toLowerCase()) {
+    //   return;
+    // }
     contentDiv.dataset.selected = lowercaseOptionType;
     const showProfileOptions = lowercaseOptionType === defaultOptionsKey.toLowerCase();
     const interest = filterOptions.find((opt) => opt.toLowerCase() === lowercaseOptionType);
@@ -413,52 +412,31 @@ export default async function decorate(block) {
     setNavigationElementStatus();
   };
 
-  if (renderDropdown) {
-    const dropdownOptions = filterOptions.map((opt) => {
-      const value = convertToTitleCase(opt);
-      return {
-        value,
-        title: value,
-        id: opt,
-      };
-    });
-    const initialDropdownValue = convertToTitleCase(defaultFilterOption || `${placeholders?.select || 'Select'}`);
-    const uniqueId = parseInt(Math.random() * 10 ** 8, 10);
-    const filterDropdown = new Dropdown(
-      blockHeader,
-      initialDropdownValue,
-      dropdownOptions,
-      DROPDOWN_VARIANTS.DEFAULT,
-      uniqueId,
-    );
-    renderCardBlock(block);
-    filterDropdown.handleOnChange((selectedOptionValue) => {
-      const option = dropdownOptions.find((opt) => opt.value === selectedOptionValue);
-      if (option?.id) {
-        fetchDataAndRenderBlock(option.id);
-      }
-    });
-    fetchDataAndRenderBlock(initialDropdownValue);
-    filterDropdown.updateDropdownValue(initialDropdownValue);
-    if (!isDesktop) {
-      renderNavigationArrows();
-    }
-  } else {
-    const onTabReady = () => {
-      renderCardBlock(block);
-      if (!isDesktop) {
-        renderNavigationArrows();
-      }
+  /* Responsive List View */
+  const listItems = filterOptions.map((item) => {
+    const value = item ? convertToTitleCase(item) : '';
+    return {
+      value: value,
+      title: value
     };
-    // eslint-disable-next-line no-new
-    new TabbedCardList({
-      parentFormElement: blockHeader,
-      defaultValue: defaultFilterOption,
-      optionsArray: filterOptions,
-      placeholders,
-      showViewAll: false,
-      fetchDataAndRenderBlock,
-      onTabFormReady: onTabReady,
-    });
-  }
+  });
+
+  const defaultOption = defaultFilterOption ? convertToTitleCase(defaultFilterOption) : null
+
+  new ResponsiveList({
+    wrapper: blockHeader,
+    items: listItems,
+    defaultSelected: defaultOption,
+    onInitCallback: () => {
+      /* Reused the existing method */
+      renderCardBlock(block);
+      fetchDataAndRenderBlock(defaultOption);
+    },
+    onSelectCallback: (selectedItem) => {
+      /* Reused the existing method */
+      if (selectedItem) {
+        fetchDataAndRenderBlock(selectedItem);
+      }      
+    }
+  });
 }
