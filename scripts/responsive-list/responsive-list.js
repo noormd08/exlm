@@ -35,7 +35,7 @@ export default class ResponsiveList {
                 loadCSS(`${window.hlx.codeBasePath}/scripts/responsive-list/responsive-list.css`)
             ]);
             this.placeholders = placeholders;
-            this.registerHeaderResizeHandler(() => {
+            this.registerWrapperResizeHandler(() => {
                 this.render();
             });
             this.onInitCallback?.();
@@ -64,7 +64,7 @@ export default class ResponsiveList {
      * Registers a resize observer for the wrapper, executing the callback on resize events.
      * @param {Function} callback - The callback to execute on resize.
      */
-    registerHeaderResizeHandler(callback) {
+    registerWrapperResizeHandler(callback) {
         const wrapperResizeObserver = new ResizeObserver(this.debounce(2000, () => {
             this.isSelectedFromUser = false;
             callback();
