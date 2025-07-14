@@ -10,3 +10,5 @@ helix-importer-ui
 /scripts/coveo-headless/libs/node_modules*
 .aio
 .env
+
+tools/visual-tests/node_modules/*

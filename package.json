@@ -19,7 +19,16 @@
     "prepare": "husky install",
     "validate:paths": "node validate-paths.js",
     "quality": "npm run format:check && npm run lint && npm run validate:paths",
-    "check:branch-name": "node check-branch-name.js"
+    "check:branch-name": "node check-branch-name.js",
+    "test:visual": "playwright test",
+    "test:visual:ui": "playwright test --ui",
+    "test:visual:update": "playwright test --update-snapshots",
+    "test:visual:report": "playwright show-report",
+    "test:visual:generate": "node tools/visual-tests/generate-visual-tests.js",
+    "test:visual:component": "playwright test -g",
+    "test:visual:component:update": "playwright test -g --update-snapshots",
+    "test:visual:server": "node tools/visual-tests/start-visual-test-server.js",
+    "start": "concurrently -k \"npm run test:visual:server\" \"aem up\" --kill-others-on-fail"
   },
   "repository": {
     "type": "git",
@@ -34,6 +43,7 @@
   "devDependencies": {
     "@babel/core": "7.21.0",
     "@babel/eslint-parser": "7.19.1",
+    "concurrently": "^9.1.2",
     "eslint": "8.35.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-config-prettier": "^9.0.0",
@@ -44,6 +54,13 @@
     "prettier": "^3.0.3",
     "stylelint": "^16.12.0",
     "stylelint-config-standard": "^36.0.1"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.54.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "node-fetch": "^2.7.0",
+    "playwright": "^1.53.0"
   },
   "lint-staged": {
     "*.js": [

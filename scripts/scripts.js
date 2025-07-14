@@ -597,6 +597,11 @@ export function decorateMain(main, isFragment = false) {
 async function loadEager(doc) {
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
+    if (document.body.classList.contains('sidekick-library')) {
+    // initialize visual test
+    loadScript(`${window.hlx.codeBasePath}/tools/visual-tests/visual-test.js`);
+    loadScript(`${window.hlx.codeBasePath}/tools/visual-overlay/index.js`, { type: 'module' });
+  }
   if (main) {
     buildPreMain(main);
     decorateMain(main);
@@ -1267,7 +1272,9 @@ export async function loadFragment(fragmentURL) {
 }
 
 async function loadPage() {
-  handleRedirects();
+  if (!document.body.classList.contains('sidekick-library')) {
+    handleRedirects()
+  }
   await loadEager(document);
   createDocColumns();
   loadRails();
