@@ -394,6 +394,7 @@ class VisualOverlay {
               height: 100%;
               pointer-events: none;
       z-index: 9999;
+      margin: 3em 3.5em;
     `;
 
     const overlay = document.createElement('div');
@@ -437,7 +438,7 @@ class VisualOverlay {
       const source = document.createElement('source');
       // Use getVariationIndex method
       const variationIndex = this.getVariationIndex();
-      const imageName = `${component}-${variationIndex}-${viewport.label.toLowerCase()}-chromium-darwin.png`;
+      const imageName = `${component}-${variationIndex}-${viewport.label.toLowerCase()}.png`;
       const imagePath = `${this.imageRoot}visual.spec.js-snapshots/${imageName}`;
 
       if (index === 0) {
