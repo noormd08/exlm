@@ -29,7 +29,7 @@ export default async function decorate(block) {
 
   const [solutions] = configs.map((cell) => cell.textContent.trim());
 
-  const contentType = CONTENT_TYPES.LIVE_EVENT.MAPPING_KEY;
+  const contentType = CONTENT_TYPES.UPCOMING_EVENT.MAPPING_KEY;
   const noOfResults = 4;
   const solutionsParam = solutions !== '' ? formattedSolutionTags(solutions) : '';
 
@@ -81,7 +81,7 @@ export default async function decorate(block) {
         for (let i = 0; i < Math.min(noOfResults, filteredLiveEventsData.length); i += 1) {
           const cardData = filteredLiveEventsData[i];
           const cardDiv = document.createElement('div');
-          buildCard(contentDiv, cardDiv, cardData);
+          buildCard(cardDiv, cardData);
           contentDiv.appendChild(cardDiv);
         }
         block.appendChild(contentDiv);

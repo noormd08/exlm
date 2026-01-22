@@ -9,7 +9,8 @@ import {
   getMetadata,
 } from './lib-franklin.js';
 import { decorateRichtext } from './editor-support-rte.js';
-import { decorateMain, isPerspectivePage, loadArticles, loadIms } from './scripts.js';
+import renderSEOWarnings from './editor-support-seo.js';
+import { decorateMain, isPerspectivePage, loadArticles } from './scripts.js';
 
 // set aem content root
 window.hlx.aemRoot = '/content/exlm/global';
@@ -91,7 +92,7 @@ function updateUEInstrumentation() {
   }
 
   // ----- if article page, identified by theme
-  if (document.querySelector('body[class^=articles]')) {
+  if (getMetadata('theme') === 'articles') {
     // update available sections
     setUEFilter(main, 'main-article');
     // update available blocks for article content sections
@@ -121,7 +122,7 @@ function updateUEInstrumentation() {
   }
 
   // ----- if author bio page, identified by theme
-  if (document.querySelector('body[class^=authors-bio-page]')) {
+  if (getMetadata('theme') === 'authors-bio-page') {
     // update available sections
     setUEFilter(main, 'empty');
     // update the only available default section
@@ -138,7 +139,7 @@ function updateUEInstrumentation() {
   }
 
   // ----- if header, identified by theme
-  if (document.querySelector('body[class^=header]') || getMetadata('theme') === 'header') {
+  if (getMetadata('theme') === 'header') {
     // update available sections
     setUEFilter(main, 'empty');
     // update the only available default section
@@ -147,7 +148,7 @@ function updateUEInstrumentation() {
   }
 
   // ----- if footer, identified by theme
-  if (document.querySelector('body[class^=footer]') || getMetadata('theme') === 'footer') {
+  if (getMetadata('theme') === 'footer') {
     // update available sections
     setUEFilter(main, 'empty');
     // update the only available default section
@@ -156,18 +157,30 @@ function updateUEInstrumentation() {
   }
 
   // ----- if profile pages, identified by theme
-  if (document.querySelector('body[class^=profile]') || getMetadata('theme') === 'profile') {
+  if (getMetadata('theme') === 'profile') {
     // update available sections
     setUEFilter(main, 'main-profile');
   }
 
   // ----- if signup-flow-modal pages, identified by theme
-  if (document.querySelector('body[class^=signup]')) {
+  if (getMetadata('theme') === 'signup') {
     // update available sections
     setUEFilter(main, 'main-signup');
     main.querySelectorAll('.section').forEach((elem) => {
       setUEFilter(elem, 'sign-up-flow-section');
     });
+  }
+
+  // ----- if courses page, identified by theme
+  if (getMetadata('theme')?.includes('courses')) {
+    // update available sections
+    setUEFilter(main, 'main-courses');
+  }
+
+  // ----- if course hub page, identified by theme
+  if (getMetadata('theme')?.includes('course-hub')) {
+    // update available sections
+    setUEFilter(main, 'main-course-hub');
   }
 }
 
@@ -209,7 +222,7 @@ async function applyChanges(event) {
       loadArticles();
       newMain.style.display = null;
       // eslint-disable-next-line no-use-before-define
-      attachEventListners(newMain);
+      attachEventListeners(newMain);
       return true;
     }
 
@@ -297,11 +310,15 @@ async function applyChanges(event) {
 /**
  * Event listener for aue:ui-select, selection of a component
  */
-function handleEditorSelect(event) {
+async function handleEditorSelect(event) {
   // we are only interested in the target
   if (!event.detail.selected) {
     return;
   }
+
+  // handle flip card selection
+  const { handleFlipCardSelection } = await import('./editor-support-blocks.js');
+  handleFlipCardSelection(event);
 
   // if a tab panel was selected
   if (event.target.closest('.tabpanel')) {
@@ -326,7 +343,7 @@ function handleEditorSelect(event) {
   }
 }
 
-function attachEventListners(main) {
+function attachEventListeners(main) {
   ['aue:content-patch', 'aue:content-update', 'aue:content-add', 'aue:content-move', 'aue:content-remove'].forEach(
     (eventType) =>
       main?.addEventListener(eventType, async (event) => {
@@ -334,6 +351,12 @@ function attachEventListners(main) {
         const applied = await applyChanges(event);
         if (applied) {
           updateUEInstrumentation();
+          renderSEOWarnings();
+          if (main.querySelectorAll('.block.code').length > 0) {
+            const { highlightCodeBlock } = await import('./editor-support-blocks.js');
+            const updatedEl = event.detail?.element ?? main;
+            await highlightCodeBlock(updatedEl);
+          }
         } else {
           window.location.reload();
         }
@@ -343,29 +366,14 @@ function attachEventListners(main) {
   main.addEventListener('aue:ui-select', handleEditorSelect);
 }
 
-attachEventListners(document.querySelector('main'));
+attachEventListeners(document.querySelector('main'));
 
 // temporary workaround until aue:ui-edit and aue:ui-preview events become available
 // show/hide sign-up block when switching betweeen UE Edit mode and preview
 const signUpBlock = document.querySelector('.block.sign-up');
 if (signUpBlock) {
-  // check if user is signed in
-  try {
-    await loadIms();
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Adobe IMS not available.');
-  }
-
-  new MutationObserver((e) => {
-    e.forEach((change) => {
-      if (change.target.classList.contains('adobe-ue-edit')) {
-        signUpBlock.style.display = 'block';
-      } else {
-        signUpBlock.style.display = window.adobeIMS?.isSignedInUser() ? 'none' : 'block';
-      }
-    });
-  }).observe(document.documentElement, { attributeFilter: ['class'] });
+  const { handleSignUpBlock } = await import('./editor-support-blocks.js');
+  await handleSignUpBlock(signUpBlock);
 }
 
 // update UE component filters on page load

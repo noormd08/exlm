@@ -6,6 +6,41 @@ import {
   fetchLanguagePlaceholders,
 } from '../../scripts/scripts.js';
 import { Playlist, LABELS } from './playlist-utils.js';
+import { updateTranscript, transcriptLoading } from '../video-transcript/video-transcript.js';
+
+const removeLastSlash = (url) => url.replace(/\/$/, '');
+const isSameUrl = (a, b) => {
+  const aUrl = new URL(a);
+  const bUrl = new URL(b);
+  return aUrl.origin === bUrl.origin && removeLastSlash(aUrl.pathname) === removeLastSlash(bUrl.pathname);
+};
+
+/**
+ * find the json-ld script/object that contains the video url
+ */
+const findJsonLd = (videoUrl) => {
+  const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
+  if (!jsonLdScripts || !jsonLdScripts.length) return null;
+
+  const jsonLd = [...jsonLdScripts]
+    .map((script) => {
+      const parsed = JSON.parse(script.textContent);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    })
+    .flat()
+    .find((jsonLdObj) => isSameUrl(jsonLdObj.embedUrl, videoUrl));
+
+  return jsonLd;
+};
+
+function getVideoThumbnailUrl(videoUrl, jsonLdString) {
+  const jsonLd = jsonLdString ? JSON.parse(jsonLdString) : findJsonLd(videoUrl);
+  const thumbnails = [jsonLd?.thumbnailUrl].flat();
+
+  const defaultThumbnail = thumbnails.sort()[jsonLd.length - 1]; // last one
+  const bestFit = thumbnails?.find((url) => url.includes('640x'));
+  return bestFit || defaultThumbnail;
+}
 
 /**
  * convert seconds to time in minutes in the format of 'mm:ss'
@@ -80,7 +115,7 @@ function iconSpan(icon) {
 function newPlayer(playlist) {
   const video = playlist.getActiveVideo();
   if (!video) return null;
-  const { src, autoplay = false, title, description, transcriptUrl, currentTime = 0, thumbnailUrl } = video;
+  const { src, autoplay = false, title, description, transcriptUrl, currentTime = 0 } = video;
 
   const iframeSrc = new URL(src);
   iframeSrc.searchParams.set('t', currentTime);
@@ -95,24 +130,15 @@ function newPlayer(playlist) {
     'autoplay',
   ];
 
-  const transcriptLoading = [100, 100, 100, 80, 70, 40]
-    .map((i) => `<p class="loading-shimmer" style="--placeholder-width: ${i}%"></p>`)
-    .join('');
-
   const player = htmlToElement(`
         <div class="playlist-player" data-playlist-player>
             <div class="playlist-player-video">
-              <div class="playlist-player-video-overlay" style="background:url(${thumbnailUrl})">
-                <button aria-label="play" class="playlist-player-video-overlay-play"><div class="playlist-player-video-overlay-circle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="playlist-player-video-overlay-icon"><path d="M8 5v14l11-7z"></path> <path d="M0 0h24v24H0z" fill="none"></path></svg></div></button>
-              </div>
-                <template id="video-iframe-template">
-                  <iframe
-                      src="${iframeSrc}" 
-                      autoplay="${autoplay}"
-                      frameborder="0" 
-                      allow="${iframeAllowOptions.join('; ')}">
-                  </iframe>
-                </template>
+               <iframe
+                  src="${iframeSrc}" 
+                  autoplay="${autoplay}"
+                  frameborder="0" 
+                  allow="${iframeAllowOptions.join('; ')}">
+                </iframe>
             </div>
             <div class="playlist-player-info">
                 <h3 class="playlist-player-info-title">${title}</h3>
@@ -129,24 +155,10 @@ function newPlayer(playlist) {
 
   decoratePlaceholders(player);
 
-  const showIframe = () => {
-    const iframeTemplate = player.querySelector('#video-iframe-template');
-    const iframe = iframeTemplate.content.firstElementChild.cloneNode(true);
-    player.querySelector('.playlist-player-video').append(iframe);
-    player.querySelector('.playlist-player-video-overlay').replaceWith(iframe);
-    iframeTemplate.remove();
-    // wait for loaded
-    iframe.addEventListener('load', () => {
-      iframe.contentWindow.postMessage({ type: 'mpcAction', action: 'play' }, '*');
-    });
-  };
-
-  if (autoplay) showIframe();
-  else {
-    player.querySelector('.playlist-player-video-overlay').addEventListener('click', () => {
-      showIframe();
-    });
-  }
+  const iframe = player.querySelector('iframe');
+  iframe.addEventListener('load', () => {
+    iframe.contentWindow.postMessage({ type: 'mpcAction', action: 'play' }, '*');
+  });
   return player;
 }
 
@@ -199,59 +211,6 @@ function decoratePlaylistHeader(block, playlist) {
   );
 }
 
-/** @param {string} transcriptUrl */
-async function getCaptionParagraphs(transcriptUrl) {
-  window.playlistCaptions = window.playlistCaptions || {};
-  if (window.playlistCaptions[transcriptUrl]) return window.playlistCaptions[transcriptUrl];
-  const response = await fetch(transcriptUrl);
-  const transcriptJson = await response.json();
-  const captions = transcriptJson?.captions || [];
-  const paragraphs = [];
-  let currentParagraph = '';
-  captions.forEach(({ content, startOfParagraph }) => {
-    if (startOfParagraph) {
-      paragraphs.push(currentParagraph);
-      currentParagraph = content;
-    } else {
-      currentParagraph += ` ${content}`;
-    }
-  });
-  paragraphs.push(currentParagraph);
-
-  window.playlistCaptions[transcriptUrl] = paragraphs;
-  return paragraphs;
-}
-
-/**
- * Updates current video transcript
- * @param {HTMLDetailsElement} transcriptDetail
- */
-function updateTranscript(transcriptDetail) {
-  const transcriptUrl = transcriptDetail.getAttribute('data-playlist-player-info-transcript');
-  const clearTranscript = () => [...transcriptDetail.querySelectorAll('p')].forEach((p) => p.remove());
-  const showTranscriptNotAvailable = () => {
-    clearTranscript();
-    transcriptDetail.append(createPlaceholderSpan(LABELS.transcriptNotAvailable, 'Transcript not available'));
-  };
-  transcriptDetail.addEventListener('toggle', (event) => {
-    if (event.target.open && transcriptDetail.dataset.ready !== 'true') {
-      getCaptionParagraphs(transcriptUrl)
-        .then((paragraphs) => {
-          clearTranscript();
-          if (!paragraphs || !paragraphs.length || !paragraphs.join('').trim()) {
-            showTranscriptNotAvailable();
-          } else paragraphs.forEach((paragraph) => transcriptDetail.append(htmlToElement(`<p>${paragraph}</p>`)));
-        })
-        .catch(() => {
-          showTranscriptNotAvailable();
-        })
-        .finally(() => {
-          transcriptDetail.dataset.ready = 'true';
-        });
-    }
-  });
-}
-
 /**
  * Shows the video at the given count
  * @param {import('./mpc-util.js').Video} video
@@ -265,7 +224,9 @@ function updatePlayer(playlist) {
   if (!player) return;
   const playerContainer = document.querySelector('[data-playlist-player-container]');
   const transcriptDetail = player.querySelector('[data-playlist-player-info-transcript]');
-  updateTranscript(transcriptDetail);
+  const transcriptUrl = transcriptDetail.getAttribute('data-playlist-player-info-transcript');
+
+  updateTranscript(transcriptUrl, transcriptDetail);
   playerContainer.innerHTML = '';
   playerContainer.append(player);
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -364,15 +325,13 @@ export default function decorate(block) {
   [...block.children].forEach((videoRow, videoIndex) => {
     videoRow.classList.add('playlist-item');
     const [videoCell, videoDataCell, jsonLdCell] = videoRow.children;
+    const [srcP] = videoCell.children;
     videoCell.classList.add('playlist-item-thumbnail');
     videoCell.setAttribute('data-playlist-item-progress-box', '');
     videoDataCell.classList.add('playlist-item-content');
 
-    const [srcP, pictureP] = videoCell.children;
     const [titleH, descriptionP, durationP, transcriptP] = videoDataCell.children;
     titleH.classList.add('playlist-item-title');
-    const { src } = pictureP.querySelector('img');
-    pictureP.replaceWith(...pictureP.childNodes);
 
     const video = {
       src: srcP.textContent,
@@ -380,7 +339,6 @@ export default function decorate(block) {
       description: descriptionP.textContent,
       duration: durationP.textContent,
       transcriptUrl: transcriptP.textContent,
-      thumbnailUrl: src,
       el: videoRow,
     };
 
@@ -391,6 +349,11 @@ export default function decorate(block) {
     transcriptP.remove();
 
     jsonLdCell?.replaceWith(htmlToElement(`<script type="application/ld+json">${jsonLdCell.textContent}</script>`));
+    // add thumbnail from jsonld if available
+    const thumbnailUrl = getVideoThumbnailUrl(video.src, jsonLdCell?.textContent);
+    if (thumbnailUrl) {
+      videoCell.innerHTML = `<img src="${thumbnailUrl}" alt="${srcP.textContent}">`;
+    }
 
     // item bottom status
     videoDataCell.append(

@@ -1,0 +1,148 @@
+@import '../../scripts/browse-card/browse-cards-block.css';
+
+/* Upcoming events alignment css */
+
+.section.upcoming-event-v2-container {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.upcoming-event-v2 .browse-cards-block-header .browse-card-description-text {
+  text-align: center;
+  color: var(--spectrum-gray-800);
+  font-size: var(--spectrum-font-size-300);
+  line-height: 23.4px;
+  margin-bottom: 16px;
+}
+
+.upcoming-event-v2 .browse-cards-block-title {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.upcoming-event-v2 .browse-card .browse-card-content {
+  min-height: auto;
+}
+
+.upcoming-event-v2 .browse-cards-block-header {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upcoming-event-v2 .browse-cards-block-view {
+  text-align: center;
+}
+
+.upcoming-event-v2 .browse-cards-block-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  min-height: 450px;
+}
+
+.upcoming-event-v2 .browse-cards-block-content > div {
+  flex: 0 0 320px;
+}
+
+.upcoming-event-v2.featured-card-hidden-features .browse-cards-block-view,
+.upcoming-event-v2.featured-card-hidden-features .browse-cards-block-content {
+  display: none;
+}
+
+/** List view styles start **/
+
+.event-no-results {
+  background-color: var(--spectrum-gray-200);
+  color: var(--non-spectrum-grey);
+  font-size: var(--spectrum-font-size-200);
+  padding: 72px 0;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  grid-column: 1 / -1;
+}
+
+.upcoming-event-v2 .browse-cards-block-content > .event-no-results {
+  min-height: unset;
+  height: 170px;
+}
+
+/** List view styles end **/
+
+@media only screen and (min-width: 600px) {
+  .section.upcoming-event-v2-container {
+    padding-bottom: 30px;
+  }
+
+  .upcoming-event-v2 .browse-cards-block-content {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .upcoming-event-v2 .browse-cards-block-view {
+    text-align: center;
+  }
+
+  .upcoming-event-v2 .upcoming-event-v2 .browse-cards-block-content > div {
+    flex: 0 0 286px;
+  }
+
+  .upcoming-event-v2 .browse-cards-block-header .browse-card-description-text {
+    margin-bottom: 36px;
+  }
+}
+
+@media only screen and (min-width: 900px) {
+  .section.upcoming-event-v2-container {
+    padding-bottom: 40px;
+  }
+
+  .upcoming-event-v2 .browse-cards-block-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    padding-bottom: 0;
+  }
+
+  .upcoming-event-v2 .browse-cards-block-view {
+    margin-top: -68px;
+    text-align: right;
+  }
+
+  .upcoming-event-v2 .browse-cards-block-title {
+    margin-bottom: 7px;
+  }
+
+  .upcoming-event-v2 .browse-cards-block-content > div {
+    flex: 0 0 295px;
+  }
+
+  .upcoming-event-v2 .browse-cards-block-header .browse-card-description-text {
+    margin-bottom: 16px;
+  }
+
+  .upcoming-event-v2.list .browse-cards-block-content {
+    display: flex;
+    flex-direction: column;
+    margin-top: 24px;
+    gap: 24px;
+    min-height: unset;
+  }
+
+  .upcoming-event-v2.list .browse-cards-block-content > div {
+    flex: 0 0 auto;
+    min-height: unset;
+    height: auto;
+    border: 1px solid var(--non-spectrum-unicorn-silver);
+    border-radius: 16px;
+  }
+
+  /** List view styles end **/
+}
+
+@media (min-width: 1400px) {
+  .upcoming-event-v2 .browse-cards-block-content {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

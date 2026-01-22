@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import browseCardDataModel from '../data-model/browse-cards-model.js';
 import { CONTENT_TYPES } from '../data-service/coveo/coveo-exl-pipeline-constants.js';
 import { fetchLanguagePlaceholders } from '../scripts.js';
@@ -78,7 +79,23 @@ const BrowseCardsCoveoDataAdaptor = (() => {
     const { raw, parentResult, title, excerpt, clickUri, uri } = result || {};
     /* eslint-disable camelcase */
 
-    const { el_id, el_contenttype, el_product, el_solution, el_type } = parentResult?.raw || raw || {};
+    const {
+      el_id,
+      el_contenttype,
+      el_product,
+      el_solution,
+      el_type,
+      role,
+      el_course_duration,
+      el_course_module_count,
+      el_level,
+      el_event_series,
+      el_event_start_time,
+      el_event_type,
+      el_event_speakers_name,
+      el_event_speakers_profile_picture_url,
+      el_event_duration,
+    } = parentResult?.raw || raw || {};
     let contentType;
     if (el_type) {
       contentType = el_type.trim();
@@ -94,7 +111,22 @@ const BrowseCardsCoveoDataAdaptor = (() => {
     const tags = createTags(result, contentType?.toLowerCase());
     let url = parentResult?.clickUri || parentResult?.uri || clickUri || uri || '';
     url = rewriteDocsPath(url);
-    const contentTypeTitleCase = convertToTitleCase(contentType?.toLowerCase());
+    const contentTypeTitleCase = convertToTitleCase(contentType?.toLowerCase()).replace(/\s+/g, '');
+
+    const eventSeries = raw?.el_event_series || el_event_series || '';
+    const eventTime = raw?.el_event_start_time || el_event_start_time || '';
+    const eventType = raw?.el_event_type || el_event_type || '';
+    const eventSpeakersName = raw?.el_event_speakers_name || el_event_speakers_name || '';
+    const eventSpeakersProfile =
+      raw?.el_event_speakers_profile_picture_url || el_event_speakers_profile_picture_url || '';
+    const eventDuration = raw?.el_event_duration || el_event_duration || '';
+
+    let eventDate = '';
+    if (raw?.el_event_start_time) {
+      eventDate = new Date(raw.el_event_start_time).toISOString();
+    } else if (el_event_start_time) {
+      eventDate = new Date(el_event_start_time).toISOString();
+    }
 
     return {
       ...browseCardDataModel,
@@ -112,7 +144,8 @@ const BrowseCardsCoveoDataAdaptor = (() => {
       title: parentResult?.title || title || '',
       description:
         contentType?.toLowerCase() === CONTENT_TYPES.PERSPECTIVE.MAPPING_KEY ||
-        contentType?.toLowerCase() === CONTENT_TYPES.PLAYLIST.MAPPING_KEY
+        contentType?.toLowerCase() === CONTENT_TYPES.PLAYLIST.MAPPING_KEY ||
+        contentType?.toLowerCase() === CONTENT_TYPES.COURSE.MAPPING_KEY
           ? raw?.exl_description || parentResult?.excerpt || ''
           : parentResult?.excerpt || excerpt || raw?.description || raw?.exl_description || '',
       tags,
@@ -122,10 +155,26 @@ const BrowseCardsCoveoDataAdaptor = (() => {
       permanentid: raw?.permanentid,
       searchUid,
       index,
+
+      event: {
+        series: eventSeries,
+        time: eventTime,
+        type: eventType,
+        speakers: {
+          name: eventSpeakersName,
+          profilePictureURL: eventSpeakersProfile,
+        },
+        date: eventDate,
+        duration: eventDuration,
+      },
       authorInfo: {
         name: raw?.author_name || '',
         type: raw?.author_type || '',
       },
+      role,
+      el_course_duration: el_course_duration || '',
+      el_course_module_count: el_course_module_count || '',
+      el_level: el_level || '',
     };
   };
 

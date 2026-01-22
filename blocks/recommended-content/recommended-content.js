@@ -32,6 +32,7 @@ const seeMoreConfig = {
   noOfRows: 2,
   prefetchCards: false,
 };
+let completeTargetData = null;
 const UEAuthorMode = window.hlx.aemRoot || window.location.href.includes('.html');
 
 // Event for target data change (Updating the block based on target data)
@@ -356,7 +357,7 @@ export default async function decorate(block) {
         });
     });
 
-  const renderCardsBlock = (cardModels, payloadConfig, contentDiv) => {
+  const renderCardsBlock = (cardModels, payloadConfig) => {
     const { renderCards = true, lowercaseOptionType, targetSupport } = payloadConfig;
     const cardModelsToRender = cardModels
       .filter((model, index) => {
@@ -417,7 +418,7 @@ export default async function decorate(block) {
                     if (cardModel && cardModel.id) {
                       dataConfiguration[lowercaseOptionType].renderedCardIds.push(cardModel.id);
                     }
-                    buildCard(contentDiv, wrapperDiv, cardModel);
+                    buildCard(wrapperDiv, cardModel);
                   }
                   cardModelsList.push(cardModel);
                 });
@@ -434,7 +435,7 @@ export default async function decorate(block) {
               if (cardData.id) {
                 dataConfiguration[lowercaseOptionType].renderedCardIds.push(cardData.id);
               }
-              buildCard(contentDiv, cardDiv, cardData);
+              buildCard(cardDiv, cardData);
             }
             resolve([cardData]);
           }
@@ -559,6 +560,7 @@ export default async function decorate(block) {
         let data = [];
         if (targetSupport) {
           data = Array.from(cardResponse?.data) ?? [];
+          completeTargetData = data;
 
           if (cardResponse?.meta?.sort === 'shuffled') {
             data = data?.sort(() => Math.random() - 0.5);
@@ -838,7 +840,7 @@ export default async function decorate(block) {
                   const cardModels = await parseCardResponseData(resp, payloadConfig);
                   let renderedCardModels = [];
                   if (cardModels?.length) {
-                    const targetCardRenderPromises = renderCardsBlock(cardModels, payloadConfig, contentDiv);
+                    const targetCardRenderPromises = renderCardsBlock(cardModels, payloadConfig);
                     renderedCardModels = await Promise.all(targetCardRenderPromises);
                   }
                   resolve({
@@ -861,6 +863,11 @@ export default async function decorate(block) {
             };
             if (contentType) {
               payload.contentType = [contentType];
+            }
+
+            // Remove role for upcoming-event
+            if (contentType === 'upcoming-event') {
+              payload.role = null;
             }
             if (contentTypesFetchMap[contentType]) {
               payload.noOfResults = contentTypesFetchMap[contentType];
@@ -903,7 +910,7 @@ export default async function decorate(block) {
                 const cardModels = await parseCardResponseData(resp, payloadConfig);
                 let renderedCardModels = [];
                 if (cardModels?.length) {
-                  const renderPromises = renderCardsBlock(cardModels, payloadConfig, contentDiv);
+                  const renderPromises = renderCardsBlock(cardModels, payloadConfig);
                   renderedCardModels = await Promise.all(renderPromises);
                 }
                 resolve({
@@ -935,12 +942,12 @@ export default async function decorate(block) {
               cardsToBeReplaced.forEach((responseInfo) => {
                 const { data = [] } = responseInfo;
 
-                data.forEach(({ shimmers, wrappers, contentDiv: contentWrapper }) => {
+                data.forEach(({ shimmers, wrappers }) => {
                   wrappers.forEach((wrapper, index) => {
                     const model = getSavedCardModel(dataConfiguration, lowercaseOptionType);
                     shimmers[index].removeShimmer();
                     if (model) {
-                      cardReplacementPromises.push(buildCard(contentWrapper, wrapper, model));
+                      cardReplacementPromises.push(buildCard(wrapper, model));
                     }
                   });
                 });
@@ -1005,7 +1012,16 @@ export default async function decorate(block) {
               navSectionEl.classList[classOp]('recommended-content-hidden');
             }
 
-            if (!targetSupport) {
+            if (targetSupport) {
+              const numberOfExistingCards = block.querySelectorAll('.card-wrapper');
+              const index = numberOfExistingCards.length ? numberOfExistingCards.length - DEFAULT_NUM_CARDS : 0;
+              if (!completeTargetData[index + DEFAULT_NUM_CARDS] && !block.dataset.browseCardRows) {
+                const seeMoreBtn = block.querySelector('.recommended-content-see-more-btn');
+                if (seeMoreBtn) {
+                  seeMoreBtn.classList.add('hide');
+                }
+              }
+            } else {
               const containsLessResponse = contentDiv.querySelectorAll('.browse-card').length < DEFAULT_NUM_CARDS;
               const savedCardsCount = seeMoreConfig.prefetchCards
                 ? getSavedCardsCount(dataConfiguration, lowercaseOptionType)

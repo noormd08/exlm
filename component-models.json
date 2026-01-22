@@ -1246,6 +1246,13 @@
         "name": "always-show",
         "label": "Do NOT hide on browse filter results?",
         "description": "When browse-filter block is used, on browse-filter results, all sections below the browse-filter is hidden. Above toggle makes an exception to show this section even if the browse filter results are displayed."
+      },
+      {
+        "component": "boolean",
+        "valueType": "boolean",
+        "name": "new-tab",
+        "label": "Open Links in a New Tab?",
+        "description": "Enabling this option will open all links in the blocks within this section in a new tab."
       }
     ]
   },
@@ -1272,6 +1279,76 @@
     ]
   },
   {
+    "id": "list-section",
+    "fields": [
+      {
+        "component": "select",
+        "name": "list-type",
+        "value": "",
+        "label": "List Type",
+        "description": "Type of list to display",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Unordered List",
+            "value": "ul"
+          },
+          {
+            "name": "Ordered List",
+            "value": "ol"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list-item",
+    "fields": []
+  },
+  {
+    "id": "list-content",
+    "fields": [
+      {
+        "component": "select",
+        "name": "classes",
+        "value": "text",
+        "label": "Type of content",
+        "description": "Type of the list content",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Text",
+            "value": "text"
+          },
+          {
+            "name": "Image",
+            "value": "image"
+          }
+        ]
+      },
+      {
+        "condition": {
+          "===": [{ "var": "classes" }, "text"]
+        },
+        "component": "richtext",
+        "valueType": "string",
+        "name": "richtext",
+        "value": "<p>List text content</p>",
+        "label": "Text Content"
+      },
+      {
+        "condition": {
+          "===": [{ "var": "classes" }, "image"]
+        },
+        "component": "reference",
+        "valueType": "string",
+        "name": "fileReference",
+        "label": "List image content",
+        "multi": false
+      }
+    ]
+  },
+  {
     "id": "browse-rail-section",
     "fields": [
       {
@@ -1283,6 +1360,74 @@
         "valueType": "string",
         "hidden": true,
         "options": []
+      }
+    ]
+  },
+  {
+    "id": "courses-section",
+    "fields": [
+      {
+        "component": "select",
+        "name": "style",
+        "value": "",
+        "label": "Background Color",
+        "description": "Section background color",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Default",
+            "value": ["courses-section", "default"]
+          },
+          {
+            "name": "White",
+            "value": ["courses-section", "bg-white"]
+          },
+          {
+            "name": "Dark Gray",
+            "value": ["courses-section", "bg-dark-gray"]
+          }
+        ]
+      },
+      {
+        "component": "boolean",
+        "valueType": "boolean",
+        "name": "center-aligned",
+        "label": "Align the default blocks in this section to the center.",
+        "description": "Enabling this option will align the default blocks in this section to the center."
+      }
+    ]
+  },
+  {
+    "id": "course-hub-section",
+    "fields": [
+      {
+        "component": "select",
+        "name": "style",
+        "value": "",
+        "label": "Background Color",
+        "description": "Section background color",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Default",
+            "value": ["course-hub-section", "default"]
+          },
+          {
+            "name": "White",
+            "value": ["course-hub-section", "bg-white"]
+          },
+          {
+            "name": "Dark Gray",
+            "value": ["course-hub-section", "bg-dark-gray"]
+          }
+        ]
+      },
+      {
+        "component": "boolean",
+        "valueType": "boolean",
+        "name": "center-aligned",
+        "label": "Align the default blocks in this section to the center.",
+        "description": "Enabling this option will align the default blocks in this section to the center."
       }
     ]
   },
@@ -1445,18 +1590,18 @@
         "label": "Rows"
       },
       {
-        "component": "select",
+        "component": "multiselect",
         "valueType": "string",
         "name": "classes",
         "label": "Style Type",
         "options": [
           {
-            "name": "Default",
-            "value": ""
-          },
-          {
             "name": "Border w/ alternating rows",
             "value": "b-alt-row"
+          },
+          {
+            "name": "Align to middle",
+            "value": "align-middle"
           }
         ]
       }
@@ -1570,6 +1715,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -1592,6 +1741,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       },
@@ -1706,6 +1859,7 @@
         "label": "Style",
         "valueType": "string",
         "required": true,
+        "maxSize": 6,
         "options": [
           {
             "name": "Size Variant",
@@ -1743,6 +1897,14 @@
               {
                 "name": "Fill marquee with given background color",
                 "value": "fill-background"
+              },
+              {
+                "name": "Fill marquee with given gradient colors",
+                "value": "fill-gradient"
+              },
+              {
+                "name": "Select to insert a video as background",
+                "value": "video"
               }
             ]
           },
@@ -1806,6 +1968,10 @@
                 "value": "bg-spectrum-yellow-700"
               },
               {
+                "name": "White",
+                "value": "bg-spectrum-gray-50"
+              },
+              {
                 "name": "Adobe Red",
                 "value": "bg-non-spectrum-adobe-red"
               },
@@ -1814,19 +1980,43 @@
                 "value": "custom"
               }
             ]
+          },
+          {
+            "name": "Text Color",
+            "children": [
+              {
+                "name": "Black",
+                "value": "text-spectrum-gray-900"
+              },
+              {
+                "name": "White",
+                "value": "text-spectrum-gray-50"
+              }
+            ]
           }
         ]
       },
       {
         "condition": {
-          "some": [{ "var": "classes" }, { "===": [{ "var": "" }, "custom"] }]
+          "some": [{ "var": "classes" }, { "in": [{ "var": "" }, ["custom", "fill-gradient"]] }]
         },
         "component": "text",
         "valueType": "string",
         "name": "customHexCode",
         "value": "",
-        "label": "Custom Background Color",
-        "description": "Enter the custom hex code, such as FFFFFF (without the # symbol)."
+        "label": "Custom Background & Gradient Colors",
+        "description": "Enter a custom hex code (e.g., FFFFFF, without the #). For gradients, enter multiple hex codes separated by commas."
+      },
+      {
+        "condition": {
+          "some": [{ "var": "classes" }, { "===": [{ "var": "" }, "video"] }]
+        },
+        "component": "text",
+        "valueType": "string",
+        "name": "videoUrl",
+        "value": "",
+        "label": "Video URL",
+        "description": "Enter the MPC-hosted video URL (applicable only for style variant :straight and size variant : large)"
       },
       {
         "component": "reference",
@@ -2531,6 +2721,15 @@
     "id": "video-embed",
     "fields": [
       {
+        "component": "select",
+        "valueType": "string",
+        "name": "classes",
+        "label": "Classes",
+        "value": "",
+        "options": [],
+        "hidden": true
+      },
+      {
         "component": "text",
         "valueType": "string",
         "name": "videoUrl",
@@ -2615,8 +2814,14 @@
         "valueType": "string",
         "name": "searchBar",
         "value": "",
-        "label": "Search Bar Text",
-        "description": "Search the search bar Placeholder Text"
+        "label": "Search Bar Placeholder Text"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "link",
+        "value": "",
+        "label": "Search Page URL"
       }
     ]
   },
@@ -3170,7 +3375,7 @@
         "name": "contentURL",
         "value": "",
         "label": "Content URL",
-        "description": "Provide a link to one of the following content types: Playlist, Tutorial, Documentation, Troubleshooting, On-Demand Event, Certification or Perspective"
+        "description": "Provide a link to one of the following content types: Course, Playlist, Tutorial, Documentation, Troubleshooting, On-Demand Event, Certification or Perspective"
       }
     ]
   },
@@ -3250,6 +3455,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -3272,6 +3481,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       }
@@ -3343,6 +3556,10 @@
           {
             "name": "Communities",
             "value": "community"
+          },
+          {
+            "name": "Courses",
+            "value": "course"
           },
           {
             "name": "Documentation",
@@ -4055,12 +4272,20 @@
             "value": "event"
           },
           {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
+          },
+          {
             "name": "Community Posts",
             "value": "community"
           },
           {
             "name": "Certification",
             "value": "certification"
+          },
+          {
+            "name": "Courses",
+            "value": "course"
           },
           {
             "name": "Perspectives",
@@ -4230,6 +4455,28 @@
       {
         "component": "aem-content",
         "valueType": "string",
+        "name": "signout-redirect-url",
+        "label": "Sign out Redirect URL",
+        "validation": {
+          "rootPath": "/content/exlm/global"
+        }
+      }
+    ]
+  },
+  {
+    "id": "article-metadata",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "jcr:title",
+        "label": "Page Title",
+        "description": "Sets the title of the page in page meta."
+      },
+      {
+        "component": "aem-content",
+        "valueType": "string[]",
+        "value": [],
         "name": "author-bio-page",
         "multi": true,
         "label": "Author Bio page URL",
@@ -4249,14 +4496,14 @@
         "component": "aem-tag",
         "valueType": "string",
         "name": "feature",
-        "label": "Feature(s)",
+        "label": "Legacy Feature(s)",
         "rootPath": "/content/cq:tags/exl/feature",
         "description": "Sets the Coveo Feature(s) in page meta."
       },
       {
         "component": "aem-tag",
         "name": "role",
-        "label": "Role(s)",
+        "label": "Legacy Role(s)",
         "valueType": "string",
         "rootPath": "/content/cq:tags/exl/role",
         "description": "Sets the role(s) in page meta."
@@ -4264,10 +4511,373 @@
       {
         "component": "aem-tag",
         "name": "level",
-        "label": "Experience Level(s)",
+        "label": "Legacy Experience Level(s)",
         "valueType": "string",
         "rootPath": "/content/cq:tags/exl/experience-level",
         "description": "Sets the level(s) in page meta."
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-roles",
+        "label": "Role(s)",
+        "valueType": "string",
+        "description": "Sets the role(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "role"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-levels",
+        "label": "Experience Level(s)",
+        "valueType": "string",
+        "description": "Sets the level(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "level"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-products",
+        "label": "Product(s)",
+        "valueType": "string",
+        "description": "Sets the products(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "product"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-features",
+        "label": "Feature(s)",
+        "valueType": "string",
+        "description": "Sets the feature(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "feature"
+            }
+          }
+        },
+        "options": {
+          "dependentField": {
+            "name": "tq-products",
+            "taxonomyType": "product"
+          },
+          "requiredTagsToEnable": ["tq-products"]
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-subfeatures",
+        "label": "Sub Feature(s)",
+        "valueType": "string",
+        "description": "Sets the subfeature(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "subfeature"
+            }
+          }
+        },
+        "options": {
+          "dependentField": {
+            "name": "tq-features",
+            "taxonomyType": "feature"
+          },
+          "requiredTagsToEnable": ["tq-features"]
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-industries",
+        "label": "Industries",
+        "valueType": "string",
+        "description": "Sets the industries in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "industry"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-topics",
+        "label": "Topic(s)",
+        "valueType": "string",
+        "description": "Sets the topic(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "topic"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "aem-content",
+        "valueType": "string",
+        "name": "signout-redirect-url",
+        "label": "Sign out Redirect URL",
+        "validation": {
+          "rootPath": "/content/exlm/global"
+        }
+      }
+    ]
+  },
+  {
+    "id": "author-metadata",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "jcr:title",
+        "label": "Page Title",
+        "description": "Sets the title of the page in page meta."
+      }
+    ]
+  },
+  {
+    "id": "course-metadata",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "jcr:title",
+        "label": "Page Title",
+        "description": "Sets the title of the page in page meta."
+      },
+      {
+        "component": "aem-content",
+        "valueType": "string[]",
+        "value": [],
+        "name": "instructor-page",
+        "multi": true,
+        "label": "Instructor page URL",
+        "validation": {
+          "rootPath": "/content/exlm/global/en/courses/instructors"
+        }
+      },
+      {
+        "component": "aem-tag",
+        "valueType": "string",
+        "name": "coveo-solution",
+        "label": "Solution(s)",
+        "rootPath": "/content/cq:tags/exl/solution",
+        "description": "Sets the Coveo Solution(s) in page meta."
+      },
+      {
+        "component": "aem-tag",
+        "valueType": "string",
+        "name": "feature",
+        "label": "Legacy Feature(s)",
+        "rootPath": "/content/cq:tags/exl/feature",
+        "description": "Sets the Coveo Feature(s) in page meta."
+      },
+      {
+        "component": "aem-tag",
+        "name": "role",
+        "label": "Legacy Role(s)",
+        "valueType": "string",
+        "rootPath": "/content/cq:tags/exl/role",
+        "description": "Sets the role(s) in page meta."
+      },
+      {
+        "component": "aem-tag",
+        "name": "level",
+        "label": "Legacy Experience Level(s)",
+        "valueType": "string",
+        "rootPath": "/content/cq:tags/exl/experience-level",
+        "description": "Sets the level(s) in page meta."
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-roles",
+        "label": "Role(s)",
+        "valueType": "string",
+        "description": "Sets the role(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "role"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-levels",
+        "label": "Experience Level(s)",
+        "valueType": "string",
+        "description": "Sets the level(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "level"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-products",
+        "label": "Product(s)",
+        "valueType": "string",
+        "description": "Sets the products(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "product"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-features",
+        "label": "Feature(s)",
+        "valueType": "string",
+        "description": "Sets the feature(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "feature"
+            }
+          }
+        },
+        "options": {
+          "dependentField": {
+            "name": "tq-products",
+            "taxonomyType": "product"
+          },
+          "requiredTagsToEnable": ["tq-products"]
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-subfeatures",
+        "label": "Sub Feature(s)",
+        "valueType": "string",
+        "description": "Sets the subfeature(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "subfeature"
+            }
+          }
+        },
+        "options": {
+          "dependentField": {
+            "name": "tq-features",
+            "taxonomyType": "feature"
+          },
+          "requiredTagsToEnable": ["tq-features"]
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-industries",
+        "label": "Industries",
+        "valueType": "string",
+        "description": "Sets the industries in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "industry"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "custom-aem-tag",
+        "name": "tq-topics",
+        "label": "Topic(s)",
+        "valueType": "string",
+        "description": "Sets the topic(s) in page meta.",
+        "dataSource": {
+          "type": "action",
+          "config": {
+            "name": "getTQTags",
+            "params": {
+              "taxonomyType": "topic"
+            }
+          }
+        },
+        "extensionId": "exl-ue-extension"
+      },
+      {
+        "component": "aem-content",
+        "valueType": "string",
+        "name": "signout-redirect-url",
+        "label": "Sign out Redirect URL",
+        "validation": {
+          "rootPath": "/content/exlm/global"
+        }
+      }
+    ]
+  },
+  {
+    "id": "course-hub-metadata",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "jcr:title",
+        "label": "Page Title",
+        "description": "Sets the title of the page in page meta."
       },
       {
         "component": "aem-content",
@@ -4892,6 +5502,15 @@
       {
         "component": "select",
         "valueType": "string",
+        "name": "classes",
+        "label": "Classes",
+        "value": "",
+        "options": [],
+        "hidden": true
+      },
+      {
+        "component": "select",
+        "valueType": "string",
         "name": "note-type",
         "label": "Note Type",
         "value": "",
@@ -5375,6 +5994,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -5397,6 +6020,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       },
@@ -5421,6 +6048,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -5443,6 +6074,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       },
@@ -5467,6 +6102,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -5489,6 +6128,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       },
@@ -5513,6 +6156,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -5535,6 +6182,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       },
@@ -5737,6 +6388,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -5783,6 +6438,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -5805,6 +6464,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       },
@@ -5829,6 +6492,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -5851,6 +6518,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       },
@@ -5875,6 +6546,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -5897,6 +6572,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       },
@@ -5921,6 +6600,10 @@
             "value": "community"
           },
           {
+            "name": "Courses",
+            "value": "course"
+          },
+          {
             "name": "Documentation",
             "value": "documentation"
           },
@@ -5943,6 +6626,10 @@
           {
             "name": "Tutorials",
             "value": "tutorial"
+          },
+          {
+            "name": "Upcoming Event",
+            "value": "upcoming-event"
           }
         ]
       },
@@ -6715,6 +7402,60 @@
     ]
   },
   {
+    "id": "upcoming-event-v2",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "heading",
+        "value": "",
+        "label": "Heading",
+        "description": "Sets the headline for Upcoming events."
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "headingType",
+        "value": "h3",
+        "label": "Heading Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "description",
+        "value": "",
+        "label": "Description",
+        "description": "Sets the description for the Upcoming Events."
+      }
+    ]
+  },
+  {
     "id": "notification-banner",
     "fields": [
       {
@@ -6832,7 +7573,7 @@
         "component": "richtext",
         "valueType": "string",
         "name": "link",
-        "value": "<a href=\"/search.html\">Search</a>",
+        "value": "<a href=\"/en/search\">Search</a>",
         "label": "Seach Link/Text",
         "description": "Should be a link to the search page. The text should be the search label."
       },
@@ -6848,7 +7589,7 @@
         "component": "richtext",
         "valueType": "string",
         "name": "list",
-        "value": "<ul><li>All:All</li><li>Certification:Certification</li><li>Community:Community</li><li>Documentation:Documentation</li><li>Events:Event</li><li>Perspectives:Perspective</li><li>Playlists:Playlist</li><li>Troubleshooting:Troubleshooting</li><li>Tutorials:Tutorial</li></ul>",
+        "value": "<ul><li>All:All</li><li>Certification:Certification</li><li>Community:Community</li><li>Courses:Course</li><li>Documentation:Documentation</li><li>Events:Event</li><li>Perspectives:Perspective</li><li>Playlists:Playlist</li><li>Troubleshooting:Troubleshooting</li><li>Tutorials:Tutorial</li></ul>",
         "label": "Seach Dropdown list",
         "description": "a list of items shown in the search dropdown"
       }
@@ -6916,7 +7657,7 @@
         "description": "Options that affect block appearance and behavior.",
         "valueType": "string",
         "required": true,
-        "maxSize": 2,
+        "maxSize": 3,
         "options": [
           {
             "name": "Code Language",
@@ -6944,6 +7685,58 @@
               {
                 "name": "Java",
                 "value": "language-java"
+              },
+              {
+                "name": "CSS",
+                "value": "language-css"
+              },
+              {
+                "name": "Python",
+                "value": "language-python"
+              },
+              {
+                "name": "Markup",
+                "value": "language-markup"
+              },
+              {
+                "name": "JSON5",
+                "value": "language-json5"
+              },
+              {
+                "name": "JSONP",
+                "value": "language-jsonp"
+              },
+              {
+                "name": "Git",
+                "value": "language-git"
+              },
+              {
+                "name": "GraphQL",
+                "value": "language-graphql"
+              },
+              {
+                "name": "HTTP",
+                "value": "language-http"
+              },
+              {
+                "name": "HTTP Pulbic-Key-Pins",
+                "value": "language-hpkp"
+              },
+              {
+                "name": "HTTPS",
+                "value": "language-https"
+              },
+              {
+                "name": "R",
+                "value": "language-r"
+              },
+              {
+                "name": "React JSX",
+                "value": "language-jsx"
+              },
+              {
+                "name": "React TSX",
+                "value": "language-tsx"
               }
             ]
           },
@@ -6953,6 +7746,10 @@
               {
                 "name": "Enable line numbering",
                 "value": "line-numbers"
+              },
+              {
+                "name": "Enable adjustable code block height",
+                "value": "expandable"
               }
             ]
           }
@@ -6981,6 +7778,17 @@
         "value": "",
         "label": "Line highlighting",
         "description": "Add number to highlight rows within a code block. E.g. 1-3, 6 will highlight lines 1 through 3 and 6."
+      },
+      {
+        "condition": {
+          "some": [{ "var": "classes" }, { "===": [{ "var": "" }, "expandable"] }]
+        },
+        "component": "text",
+        "valueType": "string",
+        "name": "initial-code-lines",
+        "value": "",
+        "label": "Default code lines to display",
+        "description": "Set how many code lines are visible before expanding to show more."
       }
     ]
   },
@@ -7030,6 +7838,919 @@
         "name": "text",
         "value": "",
         "label": "Footer copyrights"
+      }
+    ]
+  },
+  {
+    "id": "playlist-browse",
+    "fields": []
+  },
+  {
+    "id": "atomic-search",
+    "fields": []
+  },
+  {
+    "id": "module-meta",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "value": "",
+        "label": "Title",
+        "description": "Sets the title for the module."
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "description",
+        "value": "",
+        "label": "Description",
+        "description": "Sets the description for the module."
+      },
+      {
+        "component": "aem-content",
+        "valueType": "string",
+        "name": "recap_url",
+        "value": "",
+        "label": "Recap URL",
+        "description": "URL to recap",
+        "validation": {
+          "rootPath": "/content/exlm/global/en/courses"
+        }
+      },
+      {
+        "component": "aem-content",
+        "valueType": "string",
+        "name": "quiz_url",
+        "value": "",
+        "label": "Quiz page URL",
+        "description": "URL to the quiz page",
+        "validation": {
+          "rootPath": "/content/exlm/global/en/courses"
+        }
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "time",
+        "value": "",
+        "label": "Estimated time to complete (in minutes/hours)"
+      }
+    ]
+  },
+  {
+    "id": "module",
+    "fields": []
+  },
+  {
+    "id": "step",
+    "fields": [
+      {
+        "component": "aem-content",
+        "valueType": "string",
+        "name": "step_url",
+        "value": "",
+        "label": "Step Page URL",
+        "description": "URL to the step",
+        "validation": {
+          "rootPath": "/content/exlm/global/en/courses"
+        }
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "value": "",
+        "label": "Step Page Title",
+        "description": "Page title of the step"
+      }
+    ]
+  },
+  {
+    "id": "quiz",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "value": "",
+        "label": "Quiz Title",
+        "description": "Enter the module quiz title"
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "titleType",
+        "value": "h2",
+        "label": "Heading Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "quizDescription",
+        "value": "",
+        "label": "Quiz Description",
+        "description": "Enter the module quiz description"
+      },
+      {
+        "component": "aem-content",
+        "valueType": "string",
+        "name": "pass-page-url",
+        "label": "Quiz pass page url"
+      },
+      {
+        "component": "aem-content",
+        "valueType": "string",
+        "name": "fail-page-url",
+        "label": "Quiz fail page url"
+      }
+    ]
+  },
+  {
+    "id": "quiz-scorecard",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "resultText",
+        "value": "",
+        "label": "Result text",
+        "description": "Result of the quiz scorecard"
+      },
+      {
+        "component": "select",
+        "name": "classes",
+        "value": "pass",
+        "label": "Quiz classes",
+        "description": "Sets whether this is a pass or fail scorecard",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Pass",
+            "value": "pass"
+          },
+          {
+            "name": "Fail",
+            "value": "fail"
+          }
+        ]
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "description",
+        "value": "",
+        "label": "Description",
+        "description": "Sets the description text that appears below the score"
+      },
+      {
+        "condition": {
+          "===": [{ "var": "classes" }, "fail"]
+        },
+        "component": "select",
+        "name": "cta1_Type",
+        "value": "primary",
+        "label": "First CTA Type",
+        "description": "'Primary' will render a filled blue CTA, 'Secondary' will render a white CTA with a black border and black text",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Primary",
+            "value": "primary"
+          },
+          {
+            "name": "Secondary",
+            "value": "secondary"
+          }
+        ]
+      },
+      {
+        "condition": {
+          "===": [{ "var": "classes" }, "fail"]
+        },
+        "component": "text",
+        "valueType": "string",
+        "name": "cta1_linkText",
+        "value": "",
+        "label": "First CTA Text",
+        "description": "Text to be shown inside button."
+      },
+      {
+        "condition": {
+          "===": [{ "var": "classes" }, "fail"]
+        },
+        "component": "text",
+        "valueType": "string",
+        "name": "cta1_link",
+        "value": "",
+        "label": "First CTA Link",
+        "description": "What link to open when clicking the button."
+      },
+      {
+        "condition": {
+          "===": [{ "var": "classes" }, "fail"]
+        },
+        "component": "select",
+        "name": "cta2_Type",
+        "value": "secondary",
+        "label": "Second CTA Type",
+        "description": "'Primary' will render a filled blue CTA, 'Secondary' will render a white CTA with a black border and black text",
+        "valueType": "string",
+        "options": [
+          {
+            "name": "Primary",
+            "value": "primary"
+          },
+          {
+            "name": "Secondary",
+            "value": "secondary"
+          }
+        ]
+      },
+      {
+        "condition": {
+          "===": [{ "var": "classes" }, "fail"]
+        },
+        "component": "text",
+        "valueType": "string",
+        "name": "cta2_linkText",
+        "value": "",
+        "label": "Second CTA Text",
+        "description": "Text to be shown inside button."
+      },
+      {
+        "condition": {
+          "===": [{ "var": "classes" }, "fail"]
+        },
+        "component": "text",
+        "valueType": "string",
+        "name": "cta2_link",
+        "value": "",
+        "label": "Second CTA Link",
+        "description": "What link to open when clicking the button."
+      }
+    ]
+  },
+  {
+    "id": "question",
+    "fields": [
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "question",
+        "value": "",
+        "label": "Question",
+        "description": "Enter the question text"
+      },
+      {
+        "component": "boolean",
+        "valueType": "boolean",
+        "name": "isMultipleChoice",
+        "label": "Multiple Choice Question",
+        "description": "Toggle on for multiple choice question, off for single choice question"
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "answers",
+        "value": "",
+        "label": "Answers",
+        "description": "Enter the answer as an ordered list upto maximum 10 options"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "correctAnswers",
+        "value": "",
+        "label": "Correct Answers",
+        "description": "Enter the correct answer numbers as comma-delimited values (e.g., '3,5')"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "correctFeedback",
+        "value": "",
+        "label": "Correct Answer Feedback",
+        "description": "Enter the feedback message to display when the answer is correct"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "incorrectFeedback",
+        "value": "",
+        "label": "Incorrect Answer Feedback",
+        "description": "Enter the feedback message to display when the answer is incorrect"
+      }
+    ]
+  },
+  {
+    "id": "drill-in",
+    "fields": [
+      {
+        "component": "reference",
+        "valueType": "string",
+        "name": "fileReference",
+        "label": "Image",
+        "description": "The main image for the drill-in block",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "fileReferenceAlt",
+        "value": "",
+        "label": "Image Alt Text",
+        "description": "A descriptive text of the image for accessibility"
+      }
+    ]
+  },
+  {
+    "id": "drill-in-callout",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "cardTitle",
+        "value": "",
+        "label": "Card Title",
+        "description": "Title for the pop-out card"
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "cardDescription",
+        "value": "",
+        "label": "Card Description",
+        "description": "Description text for the pop-out card"
+      },
+      {
+        "component": "text",
+        "valueType": "number",
+        "name": "positionX",
+        "value": "50",
+        "label": "X Position",
+        "description": "Horizontal position of the callout, measured from the top-left corner (0–100%)"
+      },
+      {
+        "component": "text",
+        "valueType": "number",
+        "name": "positionY",
+        "value": "50",
+        "label": "Y Position",
+        "description": "Vertical position of the callout, measured from the top-left corner (0–100%)"
+      }
+    ]
+  },
+  {
+    "id": "flip-card",
+    "fields": []
+  },
+  {
+    "id": "flip-card-item",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "frontTitle",
+        "value": "",
+        "label": "Front Title",
+        "description": "Optional title for the front of the flip card. If provided, it will be displayed with an underline."
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "frontTitleType",
+        "value": "h3",
+        "label": "Front Title Heading Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "backTitle",
+        "value": "",
+        "label": "Back Title",
+        "description": "Optional title for the back of the flip card. If provided, it will be displayed with an underline."
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "backTitleType",
+        "value": "h3",
+        "label": "Back Title Heading Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "frontContent",
+        "value": "",
+        "label": "Front Content",
+        "description": "Content displayed on the front of the flip card."
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "backContent",
+        "value": "",
+        "label": "Back Content",
+        "description": "Content displayed on the back of the flip card when flipped."
+      }
+    ]
+  },
+  {
+    "id": "course-breakdown",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "value": "",
+        "label": "Title",
+        "description": "Title for the course breakdown"
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "titleType",
+        "value": "h1",
+        "label": "Title Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "moduleTimeText",
+        "value": "",
+        "label": "Module Time",
+        "description": "Time Taken to Complete the module"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "courseInfoTitle",
+        "value": "",
+        "label": "Course info Title",
+        "description": "Title for the course Breadown info section"
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "courseInfoTitleType",
+        "value": "h2",
+        "label": "Course info Title Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "courseInfoDescription",
+        "value": "",
+        "label": "Course info Description",
+        "description": "Description for the course Breadown info section"
+      },
+      {
+        "component": "aem-content",
+        "valueType": "string",
+        "name": "courseCompletionPage",
+        "value": "",
+        "label": "Course Completion Page",
+        "description": "URL to the course completion page",
+        "validation": {
+          "rootPath": "/content/exlm/global/en/courses"
+        }
+      }
+    ]
+  },
+  {
+    "id": "course-breakdown-item",
+    "fields": [
+      {
+        "component": "aem-content",
+        "valueType": "string",
+        "name": "skill_track_url",
+        "value": "",
+        "label": "Module Page URL",
+        "description": "URL to the Module",
+        "validation": {
+          "rootPath": "/content/exlm/global/en/courses"
+        }
+      }
+    ]
+  },
+  {
+    "id": "course-marquee",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "value": "",
+        "label": "Title",
+        "description": "Sets the title for the course."
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "titleType",
+        "value": "h3",
+        "label": "Title Heading Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "description",
+        "value": "",
+        "label": "Description",
+        "description": "Sets the description for the course. Please keep content brief as it will be limited to 3 lines in display."
+      }
+    ]
+  },
+  {
+    "id": "browse-courses",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "heading",
+        "value": "",
+        "label": "Heading",
+        "description": "Sets the headline for Upcoming events."
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "headingType",
+        "value": "h3",
+        "label": "Heading Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "filterLabel",
+        "value": "",
+        "label": "Filter Label",
+        "description": "Sets the text for Products filter label in dropdown."
+      }
+    ]
+  },
+  {
+    "id": "inprogress-courses",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "heading",
+        "value": "",
+        "label": "Title",
+        "description": "Sets the heading for the inprogress courses block."
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "headingType",
+        "value": "h3",
+        "label": "Title Heading Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "course-completion",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "value": "",
+        "label": "Title",
+        "description": "Sets the title for the course completion block."
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "titleType",
+        "value": "h3",
+        "label": "Title Heading Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "description",
+        "value": "",
+        "label": "Description",
+        "description": "Sets the description for the course completion block."
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "shareButtonText",
+        "value": "",
+        "label": "Button text for share button"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "downloadButtonText",
+        "value": "",
+        "label": "Button text for download certificate"
+      }
+    ]
+  },
+  {
+    "id": "course-recap",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "title",
+        "value": "",
+        "label": "Title",
+        "description": "Sets the title for the course summary."
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "titleType",
+        "value": "h3",
+        "label": "Title Heading Type",
+        "options": [
+          {
+            "name": "H1",
+            "value": "h1"
+          },
+          {
+            "name": "H2",
+            "value": "h2"
+          },
+          {
+            "name": "H3",
+            "value": "h3"
+          },
+          {
+            "name": "H4",
+            "value": "h4"
+          },
+          {
+            "name": "H5",
+            "value": "h5"
+          },
+          {
+            "name": "H6",
+            "value": "h6"
+          }
+        ]
+      },
+      {
+        "component": "richtext",
+        "valueType": "string",
+        "name": "description",
+        "value": "",
+        "label": "Description",
+        "description": "Sets the description of course summary from the current module. Make sure all the take aways are mentioned as bullet points."
+      }
+    ]
+  },
+  {
+    "id": "slides",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "slideId",
+        "value": "",
+        "label": "Slide ID",
+        "description": "ID of the slide to render. Use the ID of the slide from the URL."
       }
     ]
   }

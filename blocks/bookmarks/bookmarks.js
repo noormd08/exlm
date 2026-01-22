@@ -7,6 +7,9 @@ import BrowseCardShimmer from '../../scripts/browse-card/browse-card-shimmer.js'
 import getEmitter from '../../scripts/events.js';
 import { getCardData, convertToTitleCase } from '../../scripts/browse-card/browse-card-utils.js';
 import { CONTENT_TYPES } from '../../scripts/data-service/coveo/coveo-exl-pipeline-constants.js';
+import { sanitizeBookmarks } from '../../scripts/user-actions/bookmark.js';
+import { getCurrentCourses } from '../../scripts/courses/course-profile.js';
+import BrowseCardsCourseEnricher from '../../scripts/browse-card/browse-cards-course-enricher.js';
 
 const BATCH_SIZE = 6;
 const bookmarksEventEmitter = getEmitter('bookmarks');
@@ -53,6 +56,10 @@ export const parse = (model) => {
     bookmarkLink: '',
     viewLink: URL,
     viewLinkText: placeholders[`browseCard${contentTypeTitleCase}ViewLabel`] || 'View',
+    // Course-specific metadata for level and duration support
+    el_level: fullMetaJson.level || model.el_level,
+    el_course_duration: fullMetaJson['course-duration'] || model.el_course_duration,
+    el_course_module_count: fullMetaJson['course-module-count'] || model.el_course_module_count,
   };
 };
 
@@ -105,19 +112,31 @@ async function renderCards(block) {
 
     const cardResponses = await Promise.all(bookmarkPromises);
 
+    // Get user courses for enriching course cards with status
+    const userCourses = await getCurrentCourses();
+
     cardResponses.forEach(async (cardResponse) => {
       if (!cardResponse) {
         wrapper.lastElementChild.remove();
       } else {
-        const parsedCard = parse(cardResponse);
+        let parsedCard = parse(cardResponse);
+
+        // Enrich course cards with status information for signed-in users
+        if (parsedCard.contentType?.toLowerCase() === CONTENT_TYPES.COURSE.MAPPING_KEY.toLowerCase()) {
+          const [enrichedCard] = BrowseCardsCourseEnricher.enrichCardsWithCourseStatus([parsedCard], userCourses);
+          parsedCard = enrichedCard;
+        }
+
         const cardDiv = wrapper.querySelector('.browse-card-shimmer-wrapper');
         cardDiv.innerHTML = '';
         cardDiv.className = '';
         cardDiv.classList.add('bookmarks-card');
-        await buildCard(wrapper, cardDiv, parsedCard);
+        await buildCard(cardDiv, parsedCard);
       }
     });
   }
+
+  buildCardsShimmer.shimmerContainer.classList.remove('browse-card-shimmer');
 
   async function processBookmarksInBatches(bookmarksIds) {
     for (let i = 0; i < bookmarksIds.length; i += BATCH_SIZE) {
@@ -168,5 +187,7 @@ export default async function decorateBlock(block) {
       }
     });
     await renderCards(block);
+    // Remove once all bookmarks are converted into path.
+    sanitizeBookmarks();
   }
 }

@@ -154,6 +154,40 @@
           }
         },
         {
+          "title": "Courses Section",
+          "id": "courses-section",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/section/v1/section",
+                "template": {
+                  "filter": "courses-section",
+                  "name": "Courses Section",
+                  "model": "courses-section",
+                  "style": ["courses-section", "default"]
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Course Hub Section",
+          "id": "course-hub-section",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/section/v1/section",
+                "template": {
+                  "filter": "course-hub-section",
+                  "name": "Course Hub Section",
+                  "model": "course-hub-section",
+                  "style": ["course-hub-section", "default"]
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "Profile Section",
           "id": "profile-section",
           "plugins": {
@@ -233,6 +267,24 @@
                   "model": "tab-section",
                   "filter": "tab-section",
                   "style": "tab-section"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "List Section",
+          "id": "list-section",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/section/v1/section",
+                "template": {
+                  "name": "List Section",
+                  "model": "list-section",
+                  "filter": "list-section",
+                  "style": "list-section",
+                  "list-type": "ul"
                 }
               }
             }
@@ -373,6 +425,21 @@
                   "name": "Article Marquee",
                   "model": "article-marquee",
                   "classes": "marquee-straight"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Atomic Search",
+          "id": "atomic-search",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Atomic Search",
+                  "model": "atomic-search"
                 }
               }
             }
@@ -523,6 +590,22 @@
           }
         },
         {
+          "title": "Browse Courses",
+          "id": "browse-courses",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Browse Courses",
+                  "model": "browse-courses",
+                  "headingType": "h2"
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "Browse Filters",
           "id": "browse-filters",
           "plugins": {
@@ -596,6 +679,37 @@
           }
         },
         {
+          "title": "List Item",
+          "id": "list-item",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "List Item",
+                  "model": "list-item",
+                  "filter": "list-item"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "List Content",
+          "id": "list-content",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "List Content",
+                  "model": "list-content"
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "Code",
           "id": "code",
           "plugins": {
@@ -618,6 +732,116 @@
               "page": {
                 "resourceType": "core/franklin/components/columns/v1/columns",
                 "template": {}
+              }
+            }
+          }
+        },
+        {
+          "title": "Course Awards",
+          "id": "course-awards",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Course Awards"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Course Breakdown",
+          "id": "course-breakdown",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Course Breakdown",
+                  "model": "course-breakdown",
+                  "filter": "course-breakdown",
+                  "title": "In this Course",
+                  "titleType": "h1",
+                  "moduleTimeText": "1 Hour",
+                  "courseInfoTitle": "Skills you'll gain from this Course",
+                  "courseInfoTitleType": "h2",
+                  "courseInfoDescription": "Course Info Description",
+                  "courseCompletionPage": "",
+                  "item": {
+                    "sling:resourceType": "core/franklin/components/block/v1/block/item",
+                    "name": "Course Breakdown Item",
+                    "model": "course-breakdown-item",
+                    "skill_track_url": "/content/exlm/global/en/courses/"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Course Completion",
+          "id": "course-completion",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Course Completion",
+                  "model": "course-completion"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Course Breakdown Item",
+          "id": "course-breakdown-item",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block/item",
+                "template": {
+                  "name": "Course Breakdown Item",
+                  "model": "course-breakdown-item",
+                  "skill_track_url": "/content/exlm/global/en/courses/"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Course Marquee",
+          "id": "course-marquee",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Course Marquee",
+                  "model": "course-marquee",
+                  "title": "Course Title",
+                  "titleType": "h3",
+                  "description": "Course description that will be limited to 3 lines in display."
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Course Recap",
+          "id": "course-recap",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Course Recap",
+                  "model": "course-recap",
+                  "title": "Course Recap",
+                  "titleType": "h3",
+                  "description": "<ul><li>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</li><li>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</li><li>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li></ul>"
+                }
               }
             }
           }
@@ -681,6 +905,50 @@
                   "cta2_customBgColor": "--spectrum-gray-700",
                   "cta2_textColor": "white",
                   "cta2_customBgHexCode": "000000"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Drill In",
+          "id": "drill-in",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Drill In",
+                  "model": "drill-in",
+                  "filter": "drill-in",
+                  "fileReference": "/content/dam/exlm/drill-in-default.png",
+                  "fileReferenceAlt": "Drill In Image",
+                  "item": {
+                    "sling:resourceType": "core/franklin/components/block/v1/block/item",
+                    "name": "Drill In Callout",
+                    "model": "drill-in-callout",
+                    "cardTitle": "Sample Card Title",
+                    "cardDescription": "Sample card description text goes here."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Drill In Callout",
+          "id": "drill-in-callout",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block/item",
+                "template": {
+                  "name": "Drill In Callout",
+                  "model": "drill-in-callout",
+                  "cardTitle": "Sample Card Title",
+                  "cardDescription": "Sample card description text goes here.",
+                  "positionX": "50",
+                  "positionY": "50"
                 }
               }
             }
@@ -773,6 +1041,79 @@
                   "cta1_textColor": "white",
                   "cta1_customBgHexCode": "000000",
                   "cta1_linkText": "Read Article"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Flip Card",
+          "id": "flip-card",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Flip Card",
+                  "model": "flip-card",
+                  "filter": "flip-card",
+                  "heading": "Flip Card Section",
+                  "headingType": "h2",
+                  "description": "Interactive flip cards with front and back content",
+                  "item1": {
+                    "sling:resourceType": "core/franklin/components/block/v1/block/item",
+                    "name": "Flip Card Item",
+                    "model": "flip-card-item",
+                    "frontTitle": "Front Title",
+                    "frontTitleType": "h3",
+                    "backTitle": "Back Title",
+                    "backTitleType": "h3",
+                    "frontContent": "<p>Front content of the flip card</p>",
+                    "backContent": "<p>Back content of the flip card</p>"
+                  },
+                  "item2": {
+                    "sling:resourceType": "core/franklin/components/block/v1/block/item",
+                    "name": "Flip Card Item",
+                    "model": "flip-card-item",
+                    "frontTitle": "Front Title",
+                    "frontTitleType": "h3",
+                    "backTitle": "Back Title",
+                    "backTitleType": "h3",
+                    "frontContent": "<p>Front content of the flip card</p>",
+                    "backContent": "<p>Back content of the flip card</p>"
+                  },
+                  "item3": {
+                    "sling:resourceType": "core/franklin/components/block/v1/block/item",
+                    "name": "Flip Card Item",
+                    "model": "flip-card-item",
+                    "frontTitle": "Front Title",
+                    "frontTitleType": "h3",
+                    "backTitle": "Back Title",
+                    "backTitleType": "h3",
+                    "frontContent": "<p>Front content of the flip card</p>",
+                    "backContent": "<p>Back content of the flip card</p>"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Flip Card Item",
+          "id": "flip-card-item",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block/item",
+                "template": {
+                  "name": "Flip Card Item",
+                  "model": "flip-card-item",
+                  "frontTitle": "Front Title",
+                  "frontTitleType": "h3",
+                  "backTitle": "Back Title",
+                  "backTitleType": "h3",
+                  "frontContent": "<p>Front content of the flip card</p>",
+                  "backContent": "<p>Back content of the flip card</p>"
                 }
               }
             }
@@ -944,6 +1285,21 @@
           }
         },
         {
+          "title": "Inprogress Courses",
+          "id": "inprogress-courses",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Inprogress Courses",
+                  "model": "inprogress-courses"
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "Language Selector",
           "id": "language-selector",
           "plugins": {
@@ -968,7 +1324,7 @@
                 "template": {
                   "name": "Marquee",
                   "model": "marquee",
-                  "classes": ["medium", "curved", "bg-spectrum-gray-700"],
+                  "classes": ["medium", "curved", "bg-spectrum-gray-700", "text-spectrum-gray-900"],
                   "fileReference": "/content/dam/exlm/en/images/subjects/Community_headshot_single.png",
                   "title": "Marquee Title",
                   "titleType": "h2",
@@ -1015,6 +1371,47 @@
           }
         },
         {
+          "title": "Module",
+          "id": "module",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Module",
+                  "model": "module",
+                  "filter": "module",
+                  "item": {
+                    "sling:resourceType": "core/franklin/components/block/v1/block/item",
+                    "name": "Step",
+                    "model": "step",
+                    "step_url": ""
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Module Meta",
+          "id": "module-meta",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Module Meta",
+                  "model": "module-meta",
+                  "title": "Module Title",
+                  "description": "Module Description",
+                  "recap_url": "",
+                  "quiz_url": ""
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "Nav",
           "id": "nav",
           "plugins": {
@@ -1038,7 +1435,8 @@
                 "resourceType": "core/franklin/components/block/v1/block",
                 "template": {
                   "name": "Note",
-                  "model": "note"
+                  "model": "note",
+                  "classes": "note"
                 }
               }
             }
@@ -1072,6 +1470,21 @@
                 "template": {
                   "name": "Personalized Content Placeholder",
                   "model": "personalized-content-placeholder"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Playlist Browse",
+          "id": "playlist-browse",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Playlist Browse",
+                  "model": "playlist-browse"
                 }
               }
             }
@@ -1157,6 +1570,83 @@
                 "template": {
                   "name": "Qualtrics",
                   "model": "qualtrics"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Question",
+          "id": "question",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block/item",
+                "template": {
+                  "name": "Question",
+                  "model": "question",
+                  "question": "Sample question text",
+                  "isMultipleChoice": false,
+                  "answers": "<ol><li>Answer 1</li><li>Answer 2</li><li>Answer 3</li></ol>",
+                  "correctAnswers": "1",
+                  "correctFeedback": "Your answer is correct",
+                  "incorrectFeedback": "Your answer is incorrect"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Quiz",
+          "id": "quiz",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Quiz",
+                  "model": "quiz",
+                  "filter": "quiz",
+                  "title": "Module Quiz",
+                  "titleType": "h2",
+                  "quizDescription": "<ul><li>End of module quizzes are pass/fail</li><li>A \"passing\" grade is based on a total score of 80%</li><li>Quizzes are not timed</li><li>You can retake quizzes as many times as necessary</li><li>Questions may be in the form of multiple choice, multi select, and ordering in bullet points</li></ul>",
+                  "pass-page-url": "",
+                  "fail-page-url": "",
+                  "item1": {
+                    "sling:resourceType": "core/franklin/components/block/v1/block/item",
+                    "name": "Question",
+                    "model": "question",
+                    "question": "Sample question text",
+                    "isMultipleChoice": false,
+                    "answers": "<ol><li>Answer 1</li><li>Answer 2</li><li>Answer 3</li></ol>",
+                    "correctAnswers": "1",
+                    "correctFeedback": "Your answer is correct",
+                    "incorrectFeedback": "Your answer is incorrect"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Quiz Scorecard",
+          "id": "quiz-scorecard",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Quiz Scorecard",
+                  "model": "quiz-scorecard",
+                  "resultText": "",
+                  "description": "",
+                  "classes": "pass",
+                  "cta1_Type": "",
+                  "cta1_linkText": "Back to Step 1",
+                  "cta1_link": "",
+                  "cta2_Type": "",
+                  "cta2_linkText": "Retake the quiz",
+                  "cta2_link": ""
                 }
               }
             }
@@ -1314,6 +1804,21 @@
           }
         },
         {
+          "title": "Slides",
+          "id": "slides",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Slides",
+                  "model": "slides"
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "Social",
           "id": "social",
           "plugins": {
@@ -1338,6 +1843,22 @@
                 "template": {
                   "name": "Social Share",
                   "model": "social-share"
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Step",
+          "id": "step",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block/item",
+                "template": {
+                  "name": "Step",
+                  "model": "step",
+                  "step_url": ""
                 }
               }
             }
@@ -1473,6 +1994,22 @@
           }
         },
         {
+          "title": "Upcoming Event V2",
+          "id": "upcoming-event-v2",
+          "plugins": {
+            "xwalk": {
+              "page": {
+                "resourceType": "core/franklin/components/block/v1/block",
+                "template": {
+                  "name": "Upcoming Event V2",
+                  "model": "upcoming-event-v2",
+                  "headingType": "h2"
+                }
+              }
+            }
+          }
+        },
+        {
           "title": "User Profile Card",
           "id": "user-profile-card",
           "plugins": {
@@ -1496,7 +2033,8 @@
                 "resourceType": "core/franklin/components/block/v1/block",
                 "template": {
                   "name": "Video Embed",
-                  "model": "video-embed"
+                  "model": "video-embed",
+                  "classes": "video-embed"
                 }
               }
             }

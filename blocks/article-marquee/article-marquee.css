@@ -63,7 +63,7 @@
 }
 
 .article-marquee .author-info.adobe {
-  background-color: var(--spectrum-red-1400);
+  background-color: var(--non-spectrum-adobe-dark-red);
 }
 
 .article-marquee .author-info.external {
@@ -185,6 +185,11 @@
   margin-left: -5px;
   min-width: 48px;
   min-height: 24px;
+}
+
+.article-marquee-options .user-actions {
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .article-marquee-options .user-actions .icon {
@@ -354,7 +359,7 @@
   }
 
   .article-marquee-large-bg.adobe {
-    background-color: var(--spectrum-red-1400);
+    background-color: var(--non-spectrum-adobe-dark-red);
   }
 
   .article-marquee-large-bg.external {
@@ -373,7 +378,7 @@
 }
 
 .article-marquee .author-info.adobe .article-marquee-bg-container path:first-child {
-  fill: var(--spectrum-red-1400);
+  fill: var(--non-spectrum-adobe-dark-red);
 }
 
 .article-marquee-bg-mobile {

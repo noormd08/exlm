@@ -29,9 +29,17 @@ export async function isSignedInUser() {
  * @see: https://wiki.corp.adobe.com/display/ims/IMS+API+-+logout#IMSApi-logout-signout_options
  */
 export async function signOut() {
-  ['JWT', 'coveoToken', 'exl-profile', 'attributes', 'profile', 'pps-profile'].forEach((key) =>
+  ['JWT', 'coveoToken', 'exl-profile', 'attributes', 'profile', 'pps-profile', 'alm_access_token'].forEach((key) =>
     sessionStorage.removeItem(key),
   );
+
+  // Clear all cache entries from both sessionStorage and localStorage
+  Object.keys(sessionStorage).forEach((key) => {
+    if (key.startsWith('exl-fetch-cache')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+
   const signOutRedirectUrl = getMetadata('signout-redirect-url');
 
   if (signOutRedirectUrl) {
@@ -166,9 +174,10 @@ class ProfileClient {
     if (!signedIn) return null;
 
     const accountId = (await window.adobeIMS.getProfile()).userId;
+    const separator = khorosProfileDetailsUrl.includes('?') ? '&' : '?';
 
     try {
-      const response = await fetch(`${khorosProfileDetailsUrl}?user=${accountId}`, {
+      const response = await fetch(`${khorosProfileDetailsUrl}${separator}user=${accountId}`, {
         method: 'GET',
         headers: {
           'x-ims-token': await window.adobeIMS?.getAccessToken().token,

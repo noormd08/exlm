@@ -1,19 +1,90 @@
 import { getMetadata } from '../lib-franklin.js';
-import { htmlToElement, loadIms, getLanguageCode, getConfig } from '../scripts.js';
+import { htmlToElement, loadIms, getLanguageCode, getPathDetails, getConfig } from '../scripts.js';
 import SearchDelegate from './search-delegate.js';
 
-const { searchUrl } = getConfig();
+const { communityHost } = getConfig();
+const isCommunityDomain = window.location.origin.includes(communityHost);
 
 // Get language code from URL
 const languageCode = await getLanguageCode();
-// Get solution from metadata
-const solution = getMetadata('solution')?.split(',')[0].trim();
+
+// Community Products List
+const communityProducts = [
+  'Advertising',
+  'Analytics',
+  'Audience Manager',
+  'Campaign',
+  'Campaign Classic v7 & Campaign v8',
+  'Campaign Standard',
+  'Developer',
+  'Experience Manager',
+  'Commerce',
+  'Experience Platform',
+  'Experience Cloud',
+  'Journey Optimizer',
+  'Marketo',
+  'Marketo Engage',
+  'Workfront',
+  'Target',
+  'Real-Time Customer Data Platform',
+];
+
+let solution = '';
+// see: https://jira.corp.adobe.com/browse/EXLM-3813.
+// this is a temporary fix and steakholders accept the technical debt and  dependecy on community HTML as-is.
+// This will break infuture and that's also acceptable
+if (isCommunityDomain) {
+  // Get solution from breadcrumb
+  const breadcrumbItems = document.querySelectorAll(
+    '#breadcrumbs .spectrum-Breadcrumbs-item, #breadcrumbs-target .breadcrumb .breadcrumb-item',
+  );
+  if (breadcrumbItems.length >= 3) {
+    // product name is the 3rd breadcrumb (index 2)
+    solution = breadcrumbItems[2].textContent.trim();
+
+    if (solution.includes('Adobe Experience Manager')) {
+      solution = 'Experience Manager';
+    } else {
+      solution = solution.replace('Adobe ', '');
+    }
+
+    if (!communityProducts.some((p) => p.toLowerCase() === solution.toLowerCase())) {
+      solution = '';
+    }
+  }
+} else {
+  // Get solution from metadata
+  solution = getMetadata('solution')?.split(',')[0].trim();
+}
+
+// Get content type from metadata
+let contentType = getMetadata('type')?.trim();
+
+if (!contentType) {
+  // Fallback logic to determine contentType from URL
+  const { lang } = getPathDetails();
+  const url = window.location.pathname;
+
+  const contentTypeMap = {
+    [`/${lang}/playlists`]: 'Playlist',
+    [`/${lang}/perspectives`]: 'Perspective',
+    [`/${lang}/events`]: 'Event',
+  };
+
+  contentType = contentTypeMap[url] || '';
+
+  if (url.includes(`/${lang}/certification-home`)) {
+    contentType = 'Certification';
+  } else if (url.includes(`/${lang}/courses`)) {
+    contentType = 'Course';
+  }
+}
 
 // Redirects to the search page based on the provided search input and filters
-export const redirectToSearchPage = (searchInput, filters = '') => {
-  const baseTargetUrl = searchUrl;
-  let targetUrlWithLanguage = `${baseTargetUrl}?lang=${languageCode}`;
-  const filterValue = filters && filters.toLowerCase() === 'all' ? '' : filters;
+export const redirectToSearchPage = (searchUrl, searchInput, filters = '') => {
+  const isLegacySearch = searchUrl.includes('.html');
+  let targetUrlWithLanguage = isLegacySearch ? `${searchUrl}?lang=${languageCode}` : searchUrl;
+  const filterValue = filters?.toLowerCase() === 'all' ? '' : filters;
   if (searchInput) {
     const trimmedSearchInput = encodeURIComponent(searchInput.trim());
     targetUrlWithLanguage += `#q=${trimmedSearchInput}`;
@@ -21,23 +92,26 @@ export const redirectToSearchPage = (searchInput, filters = '') => {
     targetUrlWithLanguage += '#sort=relevancy';
   }
   if (filterValue) {
-    const filterValueEncoded = encodeURIComponent(`[${filterValue}]`);
-    targetUrlWithLanguage += `&f:@el_contenttype=${filterValueEncoded}`;
+    const filterValueEncoded = encodeURIComponent(filterValue);
+    targetUrlWithLanguage += isLegacySearch
+      ? `&f:@el_contenttype=[${filterValueEncoded}]`
+      : `&f-el_contenttype=${filterValueEncoded}`;
   }
   if (solution) {
-    const solutionEncoded = encodeURIComponent(`[${solution}]`);
-    targetUrlWithLanguage += `&f:el_product=${solutionEncoded}`;
+    const solutionEncoded = encodeURIComponent(solution);
+    targetUrlWithLanguage += isLegacySearch ? `&f:el_product=[${solutionEncoded}]` : `&f-el_product=${solutionEncoded}`;
   }
 
   window.location.href = targetUrlWithLanguage;
 };
 
 export default class Search {
-  constructor({ searchBlock }) {
+  constructor({ searchBlock, searchUrl }) {
     this.searchBlock = searchBlock;
     this.callbackFn = null;
     this.searchQuery = '';
     this.initTokens();
+    this.searchUrl = searchUrl;
   }
 
   async initTokens() {
@@ -61,6 +135,7 @@ export default class Search {
     this.canHideSearchOptions = false;
     this.searchPickerLabelEl = null;
     this.searchPickerLabelEl = this.searchBlock.querySelector('.search-picker-button .search-picker-label');
+    /** @type {HTMLDivElement} */
     this.searchPickerPopover = this.searchBlock.querySelector('.search-picker-popover');
     this.selectedCheckmarkEl = this.searchPickerPopover.querySelector('.icon');
     this.searchSuggestionsPopover = this.searchBlock.querySelector('.search-suggestions-popover');
@@ -82,6 +157,11 @@ export default class Search {
     this.savedDefaultSuggestions = null;
     this.setupAutoCompleteEvents();
     this.callbackFn = this.showSearchSuggestions ? this.fetchInitialSuggestions : null;
+
+    // Set initial filter based on meta "type" / page URL
+    if (contentType) {
+      this.setSelectedSearchOption(contentType);
+    }
   }
 
   setupAutoCompleteEvents() {
@@ -93,7 +173,7 @@ export default class Search {
         iconSearchElement.addEventListener('click', () => {
           const searchInputValue = this.searchInput.value.trim();
           const { filterValue } = this.searchPickerLabelEl.dataset;
-          redirectToSearchPage(searchInputValue, filterValue);
+          redirectToSearchPage(this.searchUrl, searchInputValue, filterValue);
         });
       }
     }
@@ -155,7 +235,7 @@ export default class Search {
       searchIcon.addEventListener('click', () => {
         const searchInputValue = this.searchInput.value.trim();
         const { filterValue } = this.searchPickerLabelEl.dataset;
-        redirectToSearchPage(searchInputValue, filterValue);
+        redirectToSearchPage(this.searchUrl, searchInputValue, filterValue);
       });
     }
   }
@@ -165,7 +245,7 @@ export default class Search {
     if (e.key === 'Enter') {
       const searchInputValue = this.searchInput.value.trim();
       const { filterValue } = this.searchPickerLabelEl.dataset;
-      redirectToSearchPage(searchInputValue, filterValue);
+      redirectToSearchPage(this.searchUrl, searchInputValue, filterValue);
     }
   }
 
@@ -233,7 +313,7 @@ export default class Search {
   }
 
   onSearchInputClick(e) {
-    if (!this.searchInput.value && this.savedDefaultSuggestions) {
+    if (!this.searchInput.value && this.savedDefaultSuggestions?.completions?.length > 0) {
       this.renderSearchSuggestions(this.savedDefaultSuggestions);
       this.onShowSearchSuggestions(e);
     }
@@ -327,12 +407,18 @@ export default class Search {
       this.clearSearchIcon.classList.add('search-icon-show');
     }
     this.hideSearchSuggestions(e, true);
-    redirectToSearchPage(suggestion, this.searchPickerLabelEl.dataset.filterValue);
+    redirectToSearchPage(this.searchUrl, suggestion, this.searchPickerLabelEl.dataset.filterValue);
   }
 
+  /**
+   * @param {string} filterValue
+   */
   setSelectedSearchOption(filterValue) {
     const selectedEl = this.searchPickerPopover.querySelector(`.search-picker-label[data-filter-value=${filterValue}]`);
-    const optionLabel = selectedEl.textContent;
+    if (!selectedEl) {
+      return;
+    }
+    const optionLabel = selectedEl.textContent.trim();
 
     const searchParams = this.searchOptions.map((o) => o.split(':')[0]);
     if (searchParams.includes(optionLabel)) {

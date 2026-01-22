@@ -5,15 +5,15 @@
   },
   {
     "id": "main",
-    "components": ["section", "tab-section"]
+    "components": ["section", "tab-section", "list-section"]
   },
   {
     "id": "main-browse",
-    "components": ["section", "browse-rail-section", "tab-section"]
+    "components": ["section", "browse-rail-section", "tab-section", "list-section"]
   },
   {
     "id": "main-article",
-    "components": ["article-content-section", "article-header-section", "section", "tab-section"]
+    "components": ["article-content-section", "article-header-section", "section", "tab-section", "list-section"]
   },
   {
     "id": "main-profile",
@@ -22,6 +22,14 @@
   {
     "id": "main-signup",
     "components": ["sign-up-flow-section"]
+  },
+  {
+    "id": "main-courses",
+    "components": ["section", "courses-section", "tab-section", "list-section"]
+  },
+  {
+    "id": "main-course-hub",
+    "components": ["section", "course-hub-section", "tab-section", "list-section"]
   },
   {
     "id": "section",
@@ -63,8 +71,25 @@
       "announcement-ribbon",
       "qualtrics",
       "upcoming-event",
+      "upcoming-event-v2",
       "notification-banner",
-      "code"
+      "code",
+      "playlist-browse",
+      "atomic-search",
+      "module-meta",
+      "module",
+      "quiz",
+      "drill-in",
+      "flip-card",
+      "course-breakdown",
+      "course-marquee",
+      "course-completion",
+      "course-awards",
+      "inprogress-courses",
+      "browse-courses",
+      "course-recap",
+      "slides",
+      "quiz-scorecard"
     ]
   },
   {
@@ -106,7 +131,8 @@
       "topic-results",
       "announcement-ribbon",
       "qualtrics",
-      "upcoming-event"
+      "upcoming-event",
+      "upcoming-event-v2"
     ]
   },
   {
@@ -146,7 +172,8 @@
       "topic-results",
       "article-tags",
       "qualtrics",
-      "code"
+      "code",
+      "announcement-ribbon"
     ]
   },
   {
@@ -166,6 +193,10 @@
       "callout",
       "note"
     ]
+  },
+  {
+    "id": "list-section",
+    "components": ["list-item"]
   },
   {
     "id": "section-browse",
@@ -197,7 +228,8 @@
       "recommendation-marquee",
       "block-quote",
       "callout",
-      "qualtrics"
+      "qualtrics",
+      "announcement-ribbon"
     ]
   },
   {
@@ -219,7 +251,7 @@
   },
   {
     "id": "section-footer",
-    "components": ["footer-breadcrumb", "footer-item", "social", "footer-copyrights", "language-selector"]
+    "components": ["footer-breadcrumb", "footer-item", "social", "footer-copyrights"]
   },
   {
     "id": "profile-section",
@@ -237,6 +269,7 @@
       "product-experience-level",
       "bookmarks",
       "awards",
+      "course-awards",
       "profile-welcome",
       "recommended-content",
       "recommendation-marquee",
@@ -244,6 +277,42 @@
       "announcement-ribbon",
       "recently-reviewed",
       "qualtrics"
+    ]
+  },
+  {
+    "id": "courses-section",
+    "components": [
+      "text",
+      "title",
+      "button",
+      "image",
+      "announcement-ribbon",
+      "module-meta",
+      "module",
+      "quiz",
+      "drill-in",
+      "flip-card",
+      "course-breakdown",
+      "course-marquee",
+      "course-completion",
+      "course-awards",
+      "course-recap",
+      "inprogress-courses",
+      "browse-courses",
+      "quiz-scorecard"
+    ]
+  },
+  {
+    "id": "course-hub-section",
+    "components": [
+      "text",
+      "title",
+      "button",
+      "image",
+      "announcement-ribbon",
+      "marquee",
+      "inprogress-courses",
+      "browse-courses"
     ]
   },
   {
@@ -290,7 +359,9 @@
       "featured-content",
       "note",
       "qualtrics",
-      "code"
+      "code",
+      "announcement-ribbon",
+      "slides"
     ]
   },
   {
@@ -333,7 +404,7 @@
   },
   {
     "id": "teaser",
-    "components": ["teaser", "detailed-teaser"]
+    "components": ["teaser", "detailed-teaser", "media"]
   },
   {
     "id": "accordion",
@@ -350,6 +421,30 @@
   {
     "id": "topic-results",
     "components": []
+  },
+  {
+    "id": "module",
+    "components": ["step"]
+  },
+  {
+    "id": "quiz",
+    "components": ["question"]
+  },
+  {
+    "id": "drill-in",
+    "components": ["drill-in-callout"]
+  },
+  {
+    "id": "flip-card",
+    "components": ["flip-card-item"]
+  },
+  {
+    "id": "course-breakdown",
+    "components": ["course-breakdown-item"]
+  },
+  {
+    "id": "list-item",
+    "components": ["list-content", "code", "note", "video-embed"]
   },
   {
     "id": "rte-custom-options",

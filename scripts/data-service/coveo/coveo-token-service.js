@@ -1,167 +1,101 @@
-import csrf from '../../auth/csrf.js';
-import { COVEO_TOKEN } from '../../session-keys.js';
-import loadJWT from '../../auth/jwt.js';
 import { getConfig } from '../../scripts.js';
-import { isSignedInUser } from '../../auth/profile.js';
-
-const { coveoTokenUrl } = getConfig();
+import { COVEO_TOKEN } from '../../session-keys.js';
 
 /**
- * Decodes a Coveo token to extract its expiration time (`exp`).
- * @param {string} token - The JSON Web Token (JWT) as a string.
- * @returns {number} The expiration time (`exp`) as a Unix timestamp.
+ * Session-cached Coveo token fetcher
+ * Ensures only ONE HTTP request per browser session for optimal performance
  */
 
-function decodeCoveoTokenValidity(token) {
-  const tokenPayload = token?.split('.')[1]; // Get the payload
-  const jsonPayload = JSON.parse(atob(tokenPayload)); // Decode the Base64-encoded token payload and parse it into a JSON object.
-  return jsonPayload?.exp;
-}
+// In-memory promise cache to prevent duplicate concurrent requests
+let tokenFetchPromise = null;
 
-async function retrieveCoveoToken(email = '', token = '') {
-  let result = null;
-  let error = null;
-  let status = 0;
+/**
+ * Fetches token from AIO Runtime service
+ * @returns {Promise<string>} The Coveo search token
+ * @private
+ */
+async function fetchCoveoTokenFromService() {
+  const { coveoTokenUrl } = getConfig();
 
   try {
+    // eslint-disable-next-line no-console
+    console.debug('[Coveo Token] Fetching token from service:', coveoTokenUrl);
+
     const response = await fetch(coveoTokenUrl, {
-      credentials: 'include',
-      method: 'POST',
+      method: 'GET',
       headers: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-        'x-csrf-token': token,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email }),
+      // Use default credentials to send cookies/origin headers
+      credentials: 'same-origin',
     });
 
-    status = response.status;
-
-    if (response.ok) {
-      const data = await response.json();
-
-      if ((data.data || '').length > 0) {
-        result = data.data;
-      } else {
-        error = new Error('Could not retrieve token');
-      }
-    } else {
-      error = new Error('Could not retrieve token');
+    if (!response.ok) {
+      throw new Error(`Token service returned ${response.status}: ${response.statusText}`);
     }
-  } catch (err) {
-    error = err;
-  }
 
-  return [result, error, status];
-}
+    const data = await response.json();
 
-async function fetchAndStoreCoveoToken() {
-  let userEmail = `exl-anonymous-${Math.floor(Math.random() * 1e6)}@experienceleague.local`;
+    if (!data.token) {
+      throw new Error('Token service returned empty token');
+    }
 
-  const signedIn = await isSignedInUser();
-
-  if (signedIn) {
-    const userProfile = await window?.adobeIMS?.getProfile();
-    userEmail = userProfile.email;
-  }
-
-  let coveoToken = '';
-  let csrfToken = '';
-  let retryCount = 0;
-  const maxRetries = 5;
-  const retryAttempts = Array.from({ length: 10 }, (_, idx) => idx + 1);
-
-  while (csrfToken.length === 0 && retryCount < maxRetries) {
+    // Cache the token in sessionStorage for subsequent page loads
     try {
-      /* eslint-disable no-await-in-loop */
-      csrfToken = await csrf(coveoTokenUrl);
-    } catch (err) {
-      /* eslint-disable no-console */
-      console.error("Couldn't retrieve CSRF token for Coveo, trying again", err);
+      sessionStorage.setItem(COVEO_TOKEN, data.token);
+      // eslint-disable-next-line no-console
+      console.debug('[Coveo Token] Token cached successfully in sessionStorage');
+    } catch (e) {
+      // sessionStorage might be full or disabled
+      // eslint-disable-next-line no-console
+      console.warn('[Coveo Token] Failed to cache token:', e.message);
     }
-    retryCount += 1;
+
+    // eslint-disable-next-line no-console
+    console.info('[Coveo Token] Token fetched successfully from service');
+    return data.token;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[Coveo Token] Failed to fetch token from service:', error);
+    throw new Error(`Failed to load Coveo token: ${error.message}`);
   }
-
-  if (csrfToken.length > 0) {
-    /* eslint-disable no-restricted-syntax */
-    for (const attempt of retryAttempts) {
-      /* eslint-disable no-await-in-loop */
-      const [tokenData, tokenError] = await retrieveCoveoToken(userEmail, csrfToken);
-
-      if (tokenData !== null && tokenError === null) {
-        coveoToken = tokenData;
-        break;
-      } else {
-        /* eslint-disable no-console */
-        console.error(tokenError?.message ?? `Failed to retrieve Coveo token [${attempt}]`);
-      }
-    }
-  } else {
-    /* eslint-disable no-console */
-    console.error('Failed to retrieve CSRF token for Coveo access token request');
-  }
-
-  if (coveoToken.length > 0) {
-    sessionStorage.setItem(COVEO_TOKEN, coveoToken);
-  } else {
-    sessionStorage.removeItem(COVEO_TOKEN);
-  }
-
-  return coveoToken;
 }
 
-let coveoResponseToken = '';
-let coveoTokenExpirationTime = '';
+/**
+ * Fetches Coveo token from AIO Runtime service with session caching
+ * @returns {Promise<string>} The Coveo search token
+ * @throws {Error} If token fetch fails after all attempts
+ */
 export default async function loadCoveoToken() {
-  const { isProd, coveoToken } = getConfig();
-  if (!isProd) {
-    return coveoToken;
-  }
-  const storedCoveoToken = sessionStorage.getItem(COVEO_TOKEN);
-
-  if (storedCoveoToken) {
-    const currentTime = Math.floor(Date.now() / 1000);
-    coveoTokenExpirationTime = coveoTokenExpirationTime || decodeCoveoTokenValidity(storedCoveoToken);
-    if (coveoTokenExpirationTime > currentTime) {
-      return storedCoveoToken;
+  // 1. Check sessionStorage first (cached from previous page loads)
+  try {
+    const cachedToken = sessionStorage.getItem(COVEO_TOKEN);
+    if (cachedToken) {
+      // eslint-disable-next-line no-console
+      console.debug('[Coveo Token] Using cached token from sessionStorage');
+      return cachedToken;
     }
+  } catch (e) {
+    // sessionStorage might be disabled in private mode
+    // eslint-disable-next-line no-console
+    console.warn('[Coveo Token] sessionStorage not available:', e.message);
   }
 
-  // `coveoResponseToken` ensures that repeated calls to loadCoveoToken() return the same Promise while a token is being fetched.
+  // 2. Check if a fetch is already in progress (prevents duplicate concurrent requests)
+  if (tokenFetchPromise) {
+    // eslint-disable-next-line no-console
+    console.debug('[Coveo Token] Token fetch already in progress, waiting...');
+    return tokenFetchPromise;
+  }
 
-  coveoResponseToken =
-    coveoResponseToken ||
-    new Promise((resolve, reject) => {
-      (async () => {
-        try {
-          const signedIn = await isSignedInUser();
+  // 3. Fetch token from AIO Runtime service
+  tokenFetchPromise = fetchCoveoTokenFromService();
 
-          const processToken = async () => {
-            const token = await fetchAndStoreCoveoToken();
-            if (token) {
-              coveoTokenExpirationTime = decodeCoveoTokenValidity(token);
-              resolve(token);
-            } else {
-              reject(new Error('Error fetching new coveo token'));
-            }
-            coveoResponseToken = ''; // Reset the token
-          };
-
-          if (signedIn) {
-            loadJWT()
-              .then(processToken)
-              .catch((error) => {
-                reject(new Error(`Error in loadJWT: ${error.message}`));
-                coveoResponseToken = '';
-              });
-          } else {
-            processToken();
-          }
-        } catch (error) {
-          reject(new Error(`Error fetching new coveo token: ${error.message}`));
-          coveoResponseToken = '';
-        }
-      })();
-    });
-  return coveoResponseToken;
+  try {
+    const token = await tokenFetchPromise;
+    return token;
+  } finally {
+    // Clear the promise cache after completion (success or failure)
+    tokenFetchPromise = null;
+  }
 }

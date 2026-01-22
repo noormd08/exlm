@@ -56,9 +56,9 @@ export const CONTENT_TYPES = Object.freeze({
     MAPPING_KEY: 'certification',
     LABEL: placeholders.browseCardCertificationLabel || 'Certification',
   },
-  LIVE_EVENT: {
-    MAPPING_KEY: 'live-event',
-    LABEL: placeholders.browseCardLiveEventLabel || 'Live Event',
+  UPCOMING_EVENT: {
+    MAPPING_KEY: 'upcoming-event',
+    LABEL: placeholders.browseCardUpcomingEventLabel || 'Upcoming Event',
   },
   INSTRUCTOR_LED: {
     MAPPING_KEY: 'instructor-led-training',
@@ -67,5 +67,13 @@ export const CONTENT_TYPES = Object.freeze({
   PERSPECTIVE: {
     MAPPING_KEY: 'perspective',
     LABEL: placeholders.browseCardPerspectiveLabel || 'Perspective',
+  },
+  'VIDEO CLIP': {
+    MAPPING_KEY: 'video-clip',
+    LABEL: placeholders.browseCardVideoClipLabel || 'Video Clip',
+  },
+  COURSE: {
+    MAPPING_KEY: 'course',
+    LABEL: placeholders.browseCardCourseLabel || 'Course',
   },
 });
